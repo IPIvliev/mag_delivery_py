@@ -153,7 +153,8 @@ def calculate_routes(kp_cars_data, car, containers_data, G):
     max_capacity = car[2] # Максимальный объём вместимости, м3
     max_working_time = car[4] # Норматив времени работы 1 ТС в сутки, час
     unload_time = car[5] # Время разгрузки, мин
-    speed_kmh = car[3] # Средняя скорость движения, км/ч
+    speed_road_kmh = car[3] # Средняя скорость движения, км/ч
+    speed_city_kmh = car[7] # Средняя скорость движения в городе, км/ч
     
     # Для каждой контейнерной площадки
     iterrows = kp_cars_data.iterrows()
@@ -168,7 +169,7 @@ def calculate_routes(kp_cars_data, car, containers_data, G):
         container_type = container_type.replace('.', ',')
         # print('start container_type: ', container_type)
         container_count = start_row['Количество контейнеров']
-        
+                
         # Получаем время загрузки для конкретного типа контейнера
         load_time = containers_data[containers_data['Вид контейнера'] == container_type]['Время загрузки,сек'].values[0]
         load_time_minutes = load_time * container_count / 60  # Общее время на загрузку всех контейнеров в минутах
@@ -180,11 +181,16 @@ def calculate_routes(kp_cars_data, car, containers_data, G):
         
         
         end_coords = (next_row['latitude_dd'], next_row['longitude_dd'])
-        print('end_coords: ', end_coords)
+        # print('end_coords: ', end_coords)
         
         # Расчет времени на движение
         # travel_time = calculate_travel_time(start_coords, end_coords, speed_kmh)
-        travel_time = shortest_travel_length(next_row, G, start_coords)
+        route_length_km = shortest_travel_length(next_row, G, start_coords)
+
+        route_time = route_length_km / speed_city_kmh * 60
+
+        container_type = container_type.replace(',', '.')
+        container_sum = float(container_type) * container_count
         
         # Составляем маршрут
         # total_time = load_time_minutes + travel_time
@@ -192,8 +198,13 @@ def calculate_routes(kp_cars_data, car, containers_data, G):
             'Марка ТС': car_lable,
             'Начальная площадка': next_row['КП'],
             'Конечная площадка': start_row['КП'],
-            'Расстояние движения (км)': travel_time,
+            'Расстояние движения (км)': route_length_km,
+            'Время движения (мин)': route_time,
             'Время загрузки (мин)': load_time_minutes,
+            'Количество контейнеров': container_count,
+            'Тип контейнеров': container_type,
+            'Общий объём контейнеров': container_sum
+            
             # 'Время выгрузки (мин)': unload_time_total,
             # 'Общее время (мин)': total_time
         })
@@ -201,8 +212,38 @@ def calculate_routes(kp_cars_data, car, containers_data, G):
         next_row = start_row
     
     # Преобразуем результаты в DataFrame для удобного просмотра
-    routes_df = pd.DataFrame(routes)
-    return routes_df
+    # routes_df = pd.DataFrame(routes)
+    return routes
+
+def calculate_trail(routes, working_time, car, lot):
+    trails = []
+    routes_list = ''
+    trail_time = 0
+    trail_length = 0
+    trail_weight = 0
+    car_max_weight = car[2]
+
+    for i, route in enumerate(routes):
+        if (trail_time <= working_time and trail_weight <= car_max_weight) and i < 3:
+            print('pass ', i)
+        else:
+            break
+
+        
+        routes_list += route['Конечная площадка'] + '; '
+        trail_time += float(route['Время движения (мин)']) + float(route['Время загрузки (мин)'])
+        trail_weight += float(route['Общий объём контейнеров'])
+        trail_length += float(route['Расстояние движения (км)'])
+        
+    trails.append({
+        'Маршрут': routes_list,
+        'Лот': lot,
+        'Общее время движения (мин)': trail_time,
+        'Общая длина маршрута (км)': trail_length,
+        'Общий объём загрузки машины (м3)': trail_weight
+    })
+
+    return trails
 
 # def build_route(coordinates):
 #     """
@@ -242,7 +283,8 @@ def main(kp_data, auto_data, main_point):
                     auto_data['Средняя скорость движения, км/ч'], 
                     auto_data['Норматив времени работы 1 ТС в сутки, час'],
                     auto_data['Время разгрузки, мин'],
-                    auto_data['Код ТС']))
+                    auto_data['Код ТС'],
+                    auto_data['Средняя скорость движения в городе, км/ч']))
 
     # Загрузка, преобразование координат по лотам
     # G = ox.graph_from_place('Nizhniy Novgorod', network_type="drive")
@@ -265,6 +307,9 @@ def main(kp_data, auto_data, main_point):
             routes = calculate_routes(kp_cars_data, car, containers_data, G)
 
             print("routes: ", routes)
+
+            trails = calculate_trail(routes, working_time, car, lot)
+            print("trails: ", trails)
             
 
     # print(len(kps))
