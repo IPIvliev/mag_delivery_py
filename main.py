@@ -2,66 +2,60 @@ import osmnx as ox
 import networkx as nx
 import pandas as pd
 from services import plot_route_on_map
-from scipy.spatial import distance_matrix
-from ortools.constraint_solver import pywrapcp, routing_enums_pb2
+# from scipy.spatial import distance_matrix
+# from ortools.constraint_solver import pywrapcp, routing_enums_pb2
 
-def optimize_route_with_tsp(points):
-    """
-    Оптимизирует маршрут с помощью алгоритма коммивояжёра (TSP).
-    :param points: Список точек [(latitude, longitude), ...].
-    :return: Оптимизированный порядок точек.
-    """
-    # Создаем матрицу расстояний
-    dist_matrix = distance_matrix(points, points)
+# def optimize_route_with_tsp(points):
+#     """
+#     Оптимизирует маршрут с помощью алгоритма коммивояжёра (TSP).
+#     :param points: Список точек [(latitude, longitude), ...].
+#     :return: Оптимизированный порядок точек.
+#     """
+#     # Создаем матрицу расстояний
+#     dist_matrix = distance_matrix(points, points)
 
-    # Настройка TSP через Google OR-Tools
-    tsp_size = len(points)
-    manager = pywrapcp.RoutingIndexManager(tsp_size, 1, 0)
-    routing = pywrapcp.RoutingModel(manager)
+#     # Настройка TSP через Google OR-Tools
+#     tsp_size = len(points)
+#     manager = pywrapcp.RoutingIndexManager(tsp_size, 1, 0)
+#     routing = pywrapcp.RoutingModel(manager)
 
-    def distance_callback(from_index, to_index):
-        from_node = manager.IndexToNode(from_index)
-        to_node = manager.IndexToNode(to_index)
-        return int(dist_matrix[from_node][to_node])
+#     def distance_callback(from_index, to_index):
+#         from_node = manager.IndexToNode(from_index)
+#         to_node = manager.IndexToNode(to_index)
+#         return int(dist_matrix[from_node][to_node])
 
-    transit_callback_index = routing.RegisterTransitCallback(distance_callback)
-    routing.SetArcCostEvaluatorOfAllVehicles(transit_callback_index)
-    search_parameters = pywrapcp.DefaultRoutingSearchParameters()
-    search_parameters.first_solution_strategy = (
-        routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
-    )
+#     transit_callback_index = routing.RegisterTransitCallback(distance_callback)
+#     routing.SetArcCostEvaluatorOfAllVehicles(transit_callback_index)
+#     search_parameters = pywrapcp.DefaultRoutingSearchParameters()
+#     search_parameters.first_solution_strategy = (
+#         routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
+#     )
 
-    # Решаем TSP
-    solution = routing.SolveWithParameters(search_parameters)
-    if not solution:
-        raise ValueError("Не удалось найти оптимальный маршрут")
+#     # Решаем TSP
+#     solution = routing.SolveWithParameters(search_parameters)
+#     if not solution:
+#         raise ValueError("Не удалось найти оптимальный маршрут")
 
-    # Получаем оптимизированный порядок точек
-    route = []
-    index = routing.Start(0)
-    while not routing.IsEnd(index):
-        route.append(manager.IndexToNode(index))
-        index = solution.Value(routing.NextVar(index))
-    return route
+#     # Получаем оптимизированный порядок точек
+#     route = []
+#     index = routing.Start(0)
+#     while not routing.IsEnd(index):
+#         route.append(manager.IndexToNode(index))
+#         index = solution.Value(routing.NextVar(index))
+#     return route
 
-def sort_data(G, lot_filtered_data, main_point):
-    """
-    Оптимизирует сортировку данных площадок по минимальному маршруту.
-    """
-    points = lot_filtered_data[['latitude_dd', 'longitude_dd']].to_numpy().tolist()
-    points.insert(0, main_point)  # Включаем главную точку как начало маршрута
+# def sort_data(G, lot_filtered_data, main_point):
+#     """
+#     Оптимизирует сортировку данных площадок по минимальному маршруту.
+#     """
+#     points = lot_filtered_data[['latitude_dd', 'longitude_dd']].to_numpy().tolist()
+#     points.insert(0, main_point)  # Включаем главную точку как начало маршрута
 
-    optimized_order = optimize_route_with_tsp(points)
+#     optimized_order = optimize_route_with_tsp(points)
 
-    # Переставляем данные по оптимальному маршруту
-    sorted_data = lot_filtered_data.iloc[optimized_order[1:] - 1]  # Убираем главную точку
-    return sorted_data
-
-
-
-
-# import geopy.distance
-# from geopy.distance import geodesic
+#     # Переставляем данные по оптимальному маршруту
+#     sorted_data = lot_filtered_data.iloc[optimized_order[1:] - 1]  # Убираем главную точку
+#     return sorted_data
 
 # main_point = (float(56.2509833), float(43.8318333)) # База
 main_point = (float(56.320699), float(43.564531)) # Полигон
@@ -71,15 +65,6 @@ kp_data = pd.read_excel(file_path, sheet_name='КП')
 auto_data = pd.read_excel(file_path, sheet_name='Авто')
 containers_data = pd.read_excel(file_path, sheet_name='Виды контейнеров')
 working_time = 720 # 720
-
-# # Функция для вычисления расстояния от главной точки
-# def calculate_distance(row, main_point):
-#     point = (row['latitude_dd'], row['longitude_dd'])
-#     route_length_km = geodesic(main_point, point).km  # Расстояние в километрах
-
-#     # print(main_point, row['Адрес дома, здания'], row['latitude_dd'], row['longitude_dd'], route_length_km)
-    
-#     return route_length_km
 
 def shortest_travel_length(row, G, start_point):
     # Поиск ближайших узлов графа для начальной и конечной точки
@@ -96,11 +81,11 @@ def shortest_travel_length(row, G, start_point):
 
     return route_length_km
 
-# def sort_data(G, lot_filtered_data, main_point):
-#     lot_filtered_data['distance_to_main_point'] = lot_filtered_data.apply(shortest_travel_length, axis = 1, args=(G, main_point))
-#     sorted_data = lot_filtered_data.sort_values(by='distance_to_main_point')
+def sort_data(G, lot_filtered_data, main_point):
+    lot_filtered_data['distance_to_main_point'] = lot_filtered_data.apply(shortest_travel_length, axis = 1, args=(G, main_point))
+    sorted_data = lot_filtered_data # .sort_values(by='distance_to_main_point')
 
-#     return sorted_data
+    return sorted_data
 
 # Переводим координаты
 def dm_to_dd(dm):
@@ -328,6 +313,7 @@ def main(kp_data, auto_data, main_point):
         # Конвертируем координаты и фильтруем по лотам
         lot_filtered_data = load_convert_coordinates(kp_data, lot)
         # Сортируем по удалённости от стартовой площадки
+        # lot_sorted_data = lot_filtered_data
         lot_sorted_data = sort_data(G, lot_filtered_data, main_point)
         
         for car in cars:
