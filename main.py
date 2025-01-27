@@ -2,59 +2,70 @@ import osmnx as ox
 import networkx as nx
 import pandas as pd
 from services import plot_route_on_map
-# from scipy.spatial import distance_matrix
-# from ortools.constraint_solver import pywrapcp, routing_enums_pb2
+from scipy.spatial import distance_matrix
+from ortools.constraint_solver import pywrapcp, routing_enums_pb2
 
-# def optimize_route_with_tsp(points):
-#     """
-#     Оптимизирует маршрут с помощью алгоритма коммивояжёра (TSP).
-#     :param points: Список точек [(latitude, longitude), ...].
-#     :return: Оптимизированный порядок точек.
-#     """
-#     # Создаем матрицу расстояний
-#     dist_matrix = distance_matrix(points, points)
+def optimize_route_with_tsp(points):
+    """
+    Оптимизирует маршрут с помощью алгоритма коммивояжёра (TSP).
+    :param points: Список точек [(latitude, longitude), ...].
+    :return: Оптимизированный порядок точек.
+    """
+    # Создаем матрицу расстояний
+    dist_matrix = distance_matrix(points, points)
 
-#     # Настройка TSP через Google OR-Tools
-#     tsp_size = len(points)
-#     manager = pywrapcp.RoutingIndexManager(tsp_size, 1, 0)
-#     routing = pywrapcp.RoutingModel(manager)
+    # Настройка TSP через Google OR-Tools
+    tsp_size = len(points)
+    manager = pywrapcp.RoutingIndexManager(tsp_size, 1, 0)
+    routing = pywrapcp.RoutingModel(manager)
 
-#     def distance_callback(from_index, to_index):
-#         from_node = manager.IndexToNode(from_index)
-#         to_node = manager.IndexToNode(to_index)
-#         return int(dist_matrix[from_node][to_node])
+    def distance_callback(from_index, to_index):
+        from_node = manager.IndexToNode(from_index)
+        to_node = manager.IndexToNode(to_index)
+        return int(dist_matrix[from_node][to_node])
 
-#     transit_callback_index = routing.RegisterTransitCallback(distance_callback)
-#     routing.SetArcCostEvaluatorOfAllVehicles(transit_callback_index)
-#     search_parameters = pywrapcp.DefaultRoutingSearchParameters()
-#     search_parameters.first_solution_strategy = (
-#         routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
-#     )
+    transit_callback_index = routing.RegisterTransitCallback(distance_callback)
+    routing.SetArcCostEvaluatorOfAllVehicles(transit_callback_index)
+    search_parameters = pywrapcp.DefaultRoutingSearchParameters()
+    search_parameters.first_solution_strategy = (
+        routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
+    )
 
-#     # Решаем TSP
-#     solution = routing.SolveWithParameters(search_parameters)
-#     if not solution:
-#         raise ValueError("Не удалось найти оптимальный маршрут")
+    # Решаем TSP
+    solution = routing.SolveWithParameters(search_parameters)
+    if not solution:
+        raise ValueError("Не удалось найти оптимальный маршрут")
 
-#     # Получаем оптимизированный порядок точек
-#     route = []
-#     index = routing.Start(0)
-#     while not routing.IsEnd(index):
-#         route.append(manager.IndexToNode(index))
-#         index = solution.Value(routing.NextVar(index))
-#     return route
+    # Получаем оптимизированный порядок точек
+    route = []
+    index = routing.Start(0)
+    while not routing.IsEnd(index):
+        route.append(manager.IndexToNode(index))
+        index = solution.Value(routing.NextVar(index))
+    return route
 
-# def sort_data(G, lot_filtered_data, main_point):
+# def sort_data(G, lot_filtered_data, main_point, lot):
 #     """
 #     Оптимизирует сортировку данных площадок по минимальному маршруту.
 #     """
+#     print(lot)
+#     file_name = 'optimized_order_'+ str(lot) +'.xlsx'
+#     print(file_name)
+
 #     points = lot_filtered_data[['latitude_dd', 'longitude_dd']].to_numpy().tolist()
 #     points.insert(0, main_point)  # Включаем главную точку как начало маршрута
+#     # print(points)
 
 #     optimized_order = optimize_route_with_tsp(points)
 
 #     # Переставляем данные по оптимальному маршруту
-#     sorted_data = lot_filtered_data.iloc[optimized_order[1:] - 1]  # Убираем главную точку
+#     # sorted_data = lot_filtered_data.iloc[optimized_order[1:] - 1]  # Убираем главную точку
+#     lot_filtered_data = lot_filtered_data.reset_index(drop=True)
+#     sorted_data = lot_filtered_data.iloc[[i - 1 for i in optimized_order[1:]]]
+
+#     sorted_data_df = pd.DataFrame(sorted_data)
+#     sorted_data_df.to_excel(file_name, index=False)
+
 #     return sorted_data
 
 # main_point = (float(56.2509833), float(43.8318333)) # База
@@ -77,12 +88,15 @@ def shortest_travel_length(row, G, start_point):
     # Перевод длины в километры
     route_length_km = route_length_meters / 1000
 
-    print(main_point, row['Адрес дома, здания'], row['latitude_dd'], row['longitude_dd'], route_length_km)
+    if float(route_length_km) == 0.0:
+        route_length_km = 0.1
+
+    print(start_point[0], start_point[1], row['latitude_dd'], row['longitude_dd'], row['Адрес дома, здания'], origin_node, destination_node, route_length_meters, route_length_km)
 
     return route_length_km
 
-def sort_data(G, lot_filtered_data, main_point):
-    lot_filtered_data['distance_to_main_point'] = lot_filtered_data.apply(shortest_travel_length, axis = 1, args=(G, main_point))
+def sort_data(G, lot_filtered_data, main_point, lot):
+    # lot_filtered_data['distance_to_main_point'] = lot_filtered_data.apply(shortest_travel_length, axis = 1, args=(G, main_point))
     sorted_data = lot_filtered_data # .sort_values(by='distance_to_main_point')
 
     return sorted_data
@@ -138,16 +152,16 @@ def load_convert_coordinates(kp_data, lot):
 
     return filtered_data
 
-# Функция для вычисления времени, необходимого на движение между точками
-def calculate_travel_time(start_coords, end_coords, speed_kmh):
-    # Вычисление расстояния между двумя точками (координатами) в км
-    distance_km = geopy.distance.distance(start_coords, end_coords).km
-    # Время в часах
-    travel_time = distance_km / speed_kmh
-    return travel_time * 60  # Переводим в минуты
+# # Функция для вычисления времени, необходимого на движение между точками
+# def calculate_travel_time(start_coords, end_coords, speed_kmh):
+#     # Вычисление расстояния между двумя точками (координатами) в км
+#     distance_km = geopy.distance.distance(start_coords, end_coords).km
+#     # Время в часах
+#     travel_time = distance_km / speed_kmh
+#     return travel_time * 60  # Переводим в минуты
 
 # Функция для расчёта маршрутов с учетом времени загрузки и выгрузки
-def calculate_routes(kp_cars_data, car, containers_data, G):
+def calculate_routes(kp_cars_data, car, containers_data, G, lot, main_point):
     routes = []
 
     # Получаем данные о транспортном средстве
@@ -183,17 +197,20 @@ def calculate_routes(kp_cars_data, car, containers_data, G):
         route_length_km = shortest_travel_length(next_row, G, start_coords)
 
         route_time = route_length_km / speed_city_kmh * 60
-        
+
+        start_distance_to_main_point = shortest_travel_length(next_row, G, main_point)
+        last_distance_to_main_point = shortest_travel_length(start_row, G, main_point)
+
         # Составляем маршрут
         # total_time = load_time_minutes + travel_time
         routes.append({
             'Марка ТС': car_lable,
             'Начальная площадка': next_row['КП'],
             'Адрес начальной площадки': next_row['Адрес дома, здания'],
-            'Расстояние начальной КП от точки старта': next_row['distance_to_main_point'],
+            'Расстояние начальной КП от точки старта': start_distance_to_main_point,
             'Конечная площадка': start_row['КП'],
             'Адрес конечной площадки': start_row['Адрес дома, здания'],
-            'Расстояние конечной КП до полигона': start_row['distance_to_main_point'],
+            'Расстояние конечной КП до полигона': last_distance_to_main_point,
             'Расстояние движения (км)': route_length_km,
             'Время движения (мин)': route_time,
             'Время загрузки (мин)': load_time_minutes,
@@ -204,11 +221,19 @@ def calculate_routes(kp_cars_data, car, containers_data, G):
 
         next_row = start_row
     
-    # Преобразуем результаты в DataFrame для удобного просмотра
-    return routes
+    # Преобразуем результаты в DataFrame для удобного просмотра и сохраняем
+    file_name = 'routes_'+ str(lot) +'.xlsx'
+    routes_df = pd.DataFrame(routes)
+    routes_df.to_excel(file_name, index=False)
 
-def calculate_trail(routes, working_time, car, lot):
-    length_from_first_kp_to_polygon = float(routes[0]['Расстояние начальной КП от точки старта'])
+    return routes_df
+
+def calculate_trail(routes, working_time, car, lot, G, main_point):
+    
+    copy_routes = routes.copy()
+    iterrows = copy_routes.iterrows()
+    _, next_row = next(iterrows)
+    length_from_first_kp_to_polygon = float(next_row['Расстояние начальной КП от точки старта'])
     time_from_first_kp_to_polygon = length_from_first_kp_to_polygon / car[3] * 60
 
     # trails = []
@@ -223,8 +248,9 @@ def calculate_trail(routes, working_time, car, lot):
 
     remove_routes = []
 
-    for i, route in enumerate(routes):
+    for i, route in iterrows:
         length_from_last_kp_to_polygon = float(route['Расстояние конечной КП до полигона'])
+
         time_from_last_kp_to_polygon = length_from_last_kp_to_polygon / car[3] * 60
 
         # print('(trail_time + time_from_last_kp_to_polygon): ', (trail_time + time_from_last_kp_to_polygon),  working_time, ((trail_time + time_from_last_kp_to_polygon) <= working_time),
@@ -245,10 +271,9 @@ def calculate_trail(routes, working_time, car, lot):
         trail_weight += float(route['Общий объём контейнеров'])
         trail_length += float(route['Расстояние движения (км)'])
 
-        remove_routes.append(route)
+        remove_routes.append(i)
 
-    for rr in remove_routes:
-        routes.remove(rr)
+    copy_routes.drop(remove_routes, inplace=True)
         
     trails = {
         'Маршрут': routes_list,
@@ -263,7 +288,7 @@ def calculate_trail(routes, working_time, car, lot):
         'Общий объём загрузки машины (м3)': trail_weight
     }
 
-    return routes, trails
+    return copy_routes, trails
 
 # def build_route(coordinates):
 #     """
@@ -308,22 +333,28 @@ def main(kp_data, auto_data, main_point):
 
     # Загрузка, преобразование координат по лотам
     G = ox.graph_from_point(center_point=main_point, dist=50000, network_type='drive')
+    # G = ox.graph_from_point(center_point=main_point, dist=50000, network_type='all')
 
     for lot in lots:
+        file_name = 'routes_'+ str(lot) +'.xlsx'
         # Конвертируем координаты и фильтруем по лотам
         lot_filtered_data = load_convert_coordinates(kp_data, lot)
         # Сортируем по удалённости от стартовой площадки
         # lot_sorted_data = lot_filtered_data
-        lot_sorted_data = sort_data(G, lot_filtered_data, main_point)
+        lot_sorted_data = sort_data(G, lot_filtered_data, main_point, lot)
+        
         
         for car in cars:
             kp_cars_data = filtered_by_cars(lot_sorted_data, car[1])
             
-            routes = calculate_routes(kp_cars_data, car, containers_data, G)
+            try:
+                routes = pd.read_excel(file_name)
+            except:
+                routes = calculate_routes(kp_cars_data, car, containers_data, G, lot, main_point)
 
             all_trails = []
-            while len(routes) > 0:
-                routes, trails = calculate_trail(routes, working_time, car, lot)
+            while not routes.empty:
+                routes, trails = calculate_trail(routes, working_time, car, lot, G, main_point)
                 all_trails.append(trails)
 
             all_trails_df = pd.DataFrame(all_trails)
