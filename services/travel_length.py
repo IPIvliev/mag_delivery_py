@@ -33,6 +33,6 @@ def shortest_travel_length_iter(row, G, start_point):
     if float(route_length_km) == 0.0:
         route_length_km = 0.1
 
-    print(start_point[0], start_point[1], row.latitude_dd, row.longitude_dd, row[7], origin_node, destination_node, route_length_km)
+    # print(start_point[0], start_point[1], row.latitude_dd, row.longitude_dd, row[7], origin_node, destination_node, route_length_km)
 
     return route_length_km

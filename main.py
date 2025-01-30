@@ -51,6 +51,7 @@ def filtered_by_cars(lot_sorted_data, car):
 
     lot_car_data = lot_sorted_data[lot_sorted_data['Вид контейнера'].isin(kp_values)]
 
+    # print(lot_car_data)
     return lot_car_data
 
 def load_convert_coordinates(kp_data, lot):
@@ -98,6 +99,7 @@ def main(kp_data, auto_data, main_point):
                     auto_data['Время разгрузки, мин'],
                     auto_data['Код ТС'],
                     auto_data['Средняя скорость движения в городе, км/ч']))
+    # print(cars)
 
     # Загрузка, преобразование координат по лотам
     G = ox.graph_from_point(center_point=main_point, dist=50000, network_type='drive')
@@ -121,17 +123,19 @@ def main(kp_data, auto_data, main_point):
             #     # routes = calculate_routes_iterrows(kp_cars_data, car, containers_data, G, lot, main_point)
             #     routes = calculate_routes_itertuples(kp_cars_data, car, containers_data, G, lot, main_point)
 
-            all_trails = []
+            
             # while not len(routes) == 1:
             #     routes, trails = calculate_trail(routes, working_time, car, lot, G, main_point)
             #     all_trails.append(trails)
 
             routes = kp_cars_data
-            while not len(routes) == 1:
-                print('Start to calculate trails', len(routes)) 
+            while not len(routes) < 1:
+                print('Start to calculate trails', len(routes))
+                all_trails = []
+                trails = []
                 routes, trails = calculate_trail(routes, containers_data, working_time, car, lot, G, main_point)
                 all_trails.append(trails)
-                # print(all_trails)
+                print('All trails: ', all_trails)
 
                 try:
                     trails_data = pd.read_excel(trails_path)
@@ -139,8 +143,11 @@ def main(kp_data, auto_data, main_point):
 
                     df = pd.concat([trails_data, all_trails_df], ignore_index=True)
                     df.to_excel('test.xlsx', index=False)
+                    
                 except:
                     all_trails_df = pd.DataFrame(all_trails)
                     all_trails_df.to_excel('test.xlsx', index=False)
+
+            print("Calculation " + str(lot) + " has finished.")
 
 main(kp_data, auto_data, main_point)
