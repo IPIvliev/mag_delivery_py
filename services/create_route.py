@@ -81,7 +81,7 @@ def calculate_routes_itertuples(kp_cars_data, car, containers_data, G, lot, main
     # Получаем данные о транспортном средстве
     car_lable = car[0] # Марка ТС
     car_code = car[6] # Код ТС
-    # car_containers_type = car[1] # Виды контейнеров
+    car_containers_type = car[1] # Виды контейнеров
     max_capacity = car[2] # Максимальный объём вместимости, м3
     max_working_time = car[4] # Норматив времени работы 1 ТС в сутки, час
     unload_time = car[5] # Время разгрузки, мин
@@ -93,18 +93,7 @@ def calculate_routes_itertuples(kp_cars_data, car, containers_data, G, lot, main
     # print('iterrows: ', iterrows)
     next_row = next(iterrows)
     # print('next_row: ', next_row)
-    # Составляем список столбцов из файла с кп
-    next_kp_number = next_row[1] # № п\п	
-    next_kp_comment = next_row[2] # коммент	
-    next_kp_name = next_row[3] # КП	
-    next_kp_latitude = next_row[4] # Координаты площадки (широта)	
-    next_kp_longitude = next_row[5] # Координаты площадки (долгота)	
-    next_kp_state = next_row[6] # Район обслуживания	
-    next_kp_address = next_row[7] # Адрес дома, здания	
-    next_kp_type = next_row[8] # Вид контейнера	
-    next_kp_amount = next_row[9] # Количество контейнеров	
-    next_kp_weight = next_row[10] # Объем суточный	
-    next_kp_lot = next_row[11] # Лот
+
 
     # print(next_row)
 
@@ -115,6 +104,18 @@ def calculate_routes_itertuples(kp_cars_data, car, containers_data, G, lot, main
 
     # for _, start_row in iterrows:
     for start_row in iterrows:
+        # Составляем список столбцов из файла с кп
+        next_kp_number = next_row[1] # № п\п	
+        next_kp_comment = next_row[2] # коммент	
+        next_kp_name = next_row[3] # КП	
+        next_kp_latitude = next_row[4] # Координаты площадки (широта)	
+        next_kp_longitude = next_row[5] # Координаты площадки (долгота)	
+        next_kp_state = next_row[6] # Район обслуживания	
+        next_kp_address = next_row[7] # Адрес дома, здания	
+        next_kp_type = next_row[8] # Вид контейнера	
+        next_kp_amount = next_row[9] # Количество контейнеров	
+        next_kp_weight = next_row[10] # Объем суточный	
+        next_kp_lot = next_row[11] # Лот
         
         start_coords = (start_row.latitude_dd, start_row.longitude_dd)
         container_type = next_kp_type

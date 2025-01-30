@@ -43,3 +43,25 @@ def plot_route_on_map(G, route, output_file="route_map.html"):
     # Сохранение карты
     route_map.save(output_file)
     print(f"Карта маршрута сохранена в {output_file}")
+
+# def build_route(coordinates):
+#     """
+#     Строит маршрут между координатами по кратчайшему пути.
+#     :param coordinates: Список координат (широта, долгота) в формате DD.
+#     :return: Граф дорожной сети и маршрут.
+#     """
+#     # Загрузка карты вокруг первой точки
+#     G = ox.graph_from_point(center_point=coordinates[0], dist=10000, network_type='drive')
+    
+#     # Преобразуем координаты в узлы дорожной сети
+#     route = []
+#     for i in range(len(coordinates) - 1):
+#         # Определяем ближайшие узлы
+#         origin = ox.nearest_nodes(G, X=coordinates[i][1], Y=coordinates[i][0])
+#         destination = ox.nearest_nodes(G, X=coordinates[i + 1][1], Y=coordinates[i + 1][0])
+        
+#         # Рассчитываем кратчайший путь
+#         shortest_path = nx.shortest_path(G, origin, destination, weight='length')
+#         route.extend(shortest_path if not route else shortest_path[1:])  # Избегаем дублирования узлов
+    
+#     return G, route
