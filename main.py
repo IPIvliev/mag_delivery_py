@@ -3,7 +3,7 @@ import pandas as pd
 from services.draw_trails import plot_route_on_map
 from services.travel_length import shortest_travel_length
 from services.create_route import calculate_routes_iterrows, calculate_routes_itertuples
-from services.calculate_trails import calculate_trail
+from services.calculate_trails import calculate_trail_for_single, calculate_trail_for_trip
 
 # main_point = (float(56.2509833), float(43.8318333)) # База
 main_point = (float(56.320699), float(43.564531)) # Полигон
@@ -11,6 +11,7 @@ main_point = (float(56.320699), float(43.564531)) # Полигон
 trails_path = 'test.xlsx'
 file_path = 'реестр КП (тер схема).xlsx'
 kp_data = pd.read_excel(file_path, sheet_name='КП')
+kgm_data = pd.read_excel(file_path, sheet_name='КГМ')
 auto_data = pd.read_excel(file_path, sheet_name='Авто')
 containers_data = pd.read_excel(file_path, sheet_name='Виды контейнеров')
 working_time = 720 # 720
@@ -39,19 +40,32 @@ def dm_to_dd(dm):
 
 def add_lots(kp_data):
     lots = kp_data['Лот'].unique()
+    print('lots: ', lots)
 
     return lots
 
 def filtered_by_cars(lot_sorted_data, car):
+    # print('lot_sorted_data: ', lot_sorted_data.shape[0])
     kp_values = car.split(';')
     kp_values = [value.strip() for value in kp_values]
     kp_values = [value.replace(',', '.') for value in kp_values]
-    # print('kp_values', kp_values)
-    lot_sorted_data['Вид контейнера'] = lot_sorted_data['Вид контейнера'].astype(str)
+    # kp_values = [value.replace(',', '.') for value in kp_values]
+    kp_values = [str(value) for value in kp_values]
+ 
+    lot_sorted_data['Вид контейнера'] = lot_sorted_data['Вид контейнера'].astype("string")
+    lot_sorted_data['Вид контейнера'] = lot_sorted_data['Вид контейнера'].str.strip()
+    lot_sorted_data['Вид контейнера'] = lot_sorted_data['Вид контейнера'].str.replace(',', '.')
+
+    # print(lot_sorted_data['Вид контейнера'])
 
     lot_car_data = lot_sorted_data[lot_sorted_data['Вид контейнера'].isin(kp_values)]
+    # lot_car_data = lot_sorted_data[lot_sorted_data['Вид контейнера'].isin(kp_values)]
 
-    # print(lot_car_data)
+    # all_trails_df = pd.DataFrame(lot_car_data)
+    # all_trails_df.to_excel('test_cont_type.xlsx', index=False)
+
+    print('KP with container types: ', kp_values, lot_car_data.shape[0])
+
     return lot_car_data
 
 def load_convert_coordinates(kp_data, lot):
@@ -70,6 +84,8 @@ def load_convert_coordinates(kp_data, lot):
     kp_data['longitude_dd'] = kp_data['Координаты площадки (долгота)'].apply(dm_to_dd)
 
     filtered_data = kp_data[kp_data['Лот'] == lot]
+
+    print('Lots sum: ', lot, filtered_data.shape[0])
 
     return filtered_data
 
@@ -106,7 +122,7 @@ def main(kp_data, auto_data, main_point):
     # G = ox.graph_from_point(center_point=main_point, dist=50000, network_type='all')
 
     for lot in lots:
-        file_name = 'routes_'+ str(lot) +'.xlsx'
+        # file_name = 'routes_'+ str(lot) +'.xlsx'
         # Конвертируем координаты и фильтруем по лотам
         lot_filtered_data = load_convert_coordinates(kp_data, lot)
         # Сортируем по удалённости от стартовой площадки
@@ -129,13 +145,18 @@ def main(kp_data, auto_data, main_point):
             #     all_trails.append(trails)
 
             routes = kp_cars_data
-            while not len(routes) < 1:
-                print('Start to calculate trails', len(routes))
+            while not routes.shape[0] < 1:
+                print('Start to calculate trails', routes.shape[0])
                 all_trails = []
                 trails = []
-                routes, trails = calculate_trail(routes, containers_data, working_time, car, lot, G, main_point)
+                if car[0] == 'КАМАЗ 43255-3010-69, МК-4512-04' or car[0] == 'Бункеровоз':
+                    routes, trails = calculate_trail_for_single(routes, containers_data, working_time, car, lot, G, main_point)
+                else:
+                    routes, trails = calculate_trail_for_trip(routes, containers_data, working_time, car, lot, G, main_point)
+                # if trails == False:
+                #     break
+
                 all_trails.append(trails)
-                print('All trails: ', all_trails)
 
                 try:
                     trails_data = pd.read_excel(trails_path)
