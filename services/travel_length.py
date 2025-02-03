@@ -28,7 +28,7 @@ def shortest_travel_length_iter(row, G, start_point):
     try:
         route_length_meters = nx.shortest_path_length(G, origin_node, destination_node, weight="length")
     except:
-        route_length_meters = 10000
+        route_length_meters = 24000
     # Перевод длины в километры
     route_length_km = route_length_meters / 1000
 

@@ -193,7 +193,7 @@ def calculate_trail_for_trip(kp_data, containers_data, working_time, car, lot, G
 
         current_row_coords = (current_row.latitude_dd, current_row.longitude_dd)
         current_trail_length = shortest_travel_length_iter(last_row, G, current_row_coords)
-        current_trail_time = (current_trail_length / speed_city_kmh)
+        current_trail_time = (current_trail_length / speed_city_kmh) * 60
 
         current_trail_weight = float(current_row[10])
 
