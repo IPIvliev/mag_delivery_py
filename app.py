@@ -9,6 +9,8 @@ from threading import Thread
 
 from datetime import datetime
 
+# Nuitka for compilation
+
 class QTextEditLogger(logging.Handler):
     def __init__(self, text_widget):
         super().__init__()
