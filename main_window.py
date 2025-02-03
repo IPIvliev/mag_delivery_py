@@ -76,7 +76,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "Рассчёт маршрутов"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Расчёт маршрутов"))
         self.btn_load.setText(_translate("MainWindow", "Загрузить файл"))
         self.btn_calculate.setText(_translate("MainWindow", "Рассчитать"))
         self.label_path.setText(_translate("MainWindow", "Файл не выбран"))
