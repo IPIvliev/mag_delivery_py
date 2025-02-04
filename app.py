@@ -97,7 +97,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # Загрузка данных из файлов
             file_path = self.file_path
             self.kp_data = pd.read_excel(file_path, sheet_name='КП')
-            self.kgm_data = pd.read_excel(file_path, sheet_name='КГМ')
             self.auto_data = pd.read_excel(file_path, sheet_name='Авто')
             self.containers_data = pd.read_excel(file_path, sheet_name='Виды контейнеров')
             self.working_time = int(self.working_time.text())

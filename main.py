@@ -1,7 +1,7 @@
 import osmnx as ox
 import os
 import pandas as pd
-from services.calculate_trails import calculate_trail_for_single, calculate_trail_for_trip
+from services.calculate_trails import calculate_trail_for_single, calculate_trail_for_trip, calculate_trail_for_kgm
 
 
 def sort_data(G, lot_filtered_data, main_point, lot):
@@ -31,29 +31,31 @@ def add_lots(kp_data):
     return lots
 
 def filtered_by_kgm(lot_sorted_data):
-    lot_sorted_data['Объем суточный КГМ'] = lot_sorted_data['Объем суточный КГМ'].astype("string")
-    lot_car_data = lot_sorted_data[lot_sorted_data['Объем суточный КГМ'].str.len() > 0]
+    # lot_sorted_data['Объем суточный КГМ'] = lot_sorted_data['Объем суточный КГМ'].astype("string")
+    lot_car_data = lot_sorted_data[~lot_sorted_data['Объем суточный КГМ'].isnull()]
 
-    print('Filtered by kgm: ', lot_car_data.shape[0])
+    print('Filtered by kgm: ', lot_sorted_data.shape[0], lot_car_data.shape[0])
 
     return lot_car_data
 
 def filtered_by_cars(lot_sorted_data, car):
-
-    kp_values = car.split(';')
-    kp_values = [value.strip() for value in kp_values]
-    kp_values = [value.replace(',', '.') for value in kp_values]
-    kp_values = [str(value) for value in kp_values]
- 
     lot_sorted_data['Вид контейнера'] = lot_sorted_data['Вид контейнера'].astype("string")
     lot_sorted_data['Вид контейнера'] = lot_sorted_data['Вид контейнера'].str.strip()
     lot_sorted_data['Вид контейнера'] = lot_sorted_data['Вид контейнера'].str.replace(',', '.')
 
+    if type(car) == float:
+        kp_values = [str(car).strip().replace(',', '.')]
+    else:
+        kp_values = car.split(';')
+        kp_values = [value.strip() for value in kp_values]
+        kp_values = [value.replace(',', '.') for value in kp_values]
+        kp_values = [str(value) for value in kp_values]
+ 
     # print(lot_sorted_data['Вид контейнера'])
 
     lot_car_data = lot_sorted_data[lot_sorted_data['Вид контейнера'].isin(kp_values)]
 
-    # print('KP with container types: ', kp_values, lot_car_data.shape[0])
+    print('KP with container types: ', kp_values, lot_car_data.shape[0])
 
     return lot_car_data
 
@@ -112,8 +114,7 @@ def main(kp_data, auto_data, main_point, containers_data, working_time, accuracy
         for car in cars:
             logging.info(f"Начинаем создавать маршруты для машины {car[0]} в лоте {lot} ")
             kp_cars_data = filtered_by_cars(lot_sorted_data, car[1])
-            
-            routes = filtered_by_kgm(lot_sorted_data)
+
             if car[0] == 'КАМАЗ 43255-6010-69 (самосвал)':
                 routes = filtered_by_kgm(lot_sorted_data)
             else:
