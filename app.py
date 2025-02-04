@@ -113,6 +113,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             print('single_route', single_route)
             try:
                 os.remove(f"results/result.xlsx")
+                os.remove(f"results/result_optimize.xlsx")
             except:
                 pass
             logging.info("Обработка данных")

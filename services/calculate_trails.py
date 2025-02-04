@@ -22,7 +22,7 @@ def check_car_max_weight(car_max_weight, kp_type):
 
     return car_max_weight
 
-def calculate_trail_for_single(kp_data, containers_data, working_time, car, lot, G, main_point, single_route):
+def calculate_trail_for_single(kp_data, containers_data, working_time, car, lot, G, main_point):
     car_lable = car[0] # Марка ТС
     car_code = car[6] # Код ТС
     car_containers_type = car[1] # Виды контейнеров
@@ -33,84 +33,94 @@ def calculate_trail_for_single(kp_data, containers_data, working_time, car, lot,
     speed_city_kmh = car[7] # Средняя скорость движения в городе, км/ч
 
     try:
+        
         copy_kp_data = kp_data.copy()
         iterrows = copy_kp_data.itertuples(index = True)
-
-        routes_list = ''
-
-        trail_time = car_time_unload
-        trail_weight = 0
-        trail_length = 0
-        routes_amount = 0
-        whole_containers_amount = 0
-        load_time = 0
-
-        length_from_polygon_to_kp = 0
-        time_from_polygonto_kp = 0
-        length_from_current_kp_to_polygon = 0
-        time_from_current_kp_to_polygon = 0
-
         current_row = next(iterrows)
 
-        # containers_amount = current_row[9]
+        containers_i = current_row[9]
 
-        # print('For 8 and more: ', 'Car: ', car[0], 'lot: ', lot, current_row)
-        length_from_polygon_to_kp = shortest_travel_length_iter(current_row, G, main_point)
-        time_from_polygon_to_kp = length_from_polygon_to_kp / speed_road_kmh * 60
-        length_from_last_kp_to_polygon = length_from_polygon_to_kp
+        trails = []
 
-        length_from_current_kp_to_polygon = length_from_polygon_to_kp
-        time_from_current_kp_to_polygon = time_from_polygon_to_kp
+        while containers_i != 0:
+            containers_i = containers_i - 1
+            routes_list = ''
 
-        trail_length += length_from_polygon_to_kp
-        trail_time += time_from_polygon_to_kp
+            trail_time = car_time_unload
+            trail_weight = 0
+            trail_length = 0
+            routes_amount = 0
+            whole_containers_amount = 0
+            load_time = 0
 
-        # trail_weight = float(current_row[10])
-        trail_weight = float(current_row[8]) # Превращаем вид контейнера в объём контейнера
-        load_time = culculate_load_time(current_row[8], 1, containers_data)
-        trail_time += load_time
-        whole_containers_amount = 1 # Есть площадки с несколькими контейнерами, мы их нормализуем
-        routes_amount = 1
-        last_kp_state = current_row[6]
-        last_kp_type = current_row[8]
-        routes_list = current_row[3] + ' / ' + current_row[7]
+            length_from_polygon_to_kp = 0
+            time_from_polygonto_kp = 0
+            length_from_current_kp_to_polygon = 0
+            time_from_current_kp_to_polygon = 0
 
-        copy_kp_data.drop(current_row.Index, inplace=True)
+            # containers_amount = current_row[9]
 
-        ####
+            # print('For 8 and more: ', 'Car: ', car[0], 'lot: ', lot, current_row)
+            length_from_polygon_to_kp = shortest_travel_length_iter(current_row, G, main_point)
+            time_from_polygon_to_kp = length_from_polygon_to_kp / speed_road_kmh * 60
+            length_from_last_kp_to_polygon = length_from_polygon_to_kp
 
-        trail_length += length_from_current_kp_to_polygon
-        trail_time += time_from_current_kp_to_polygon
+            length_from_current_kp_to_polygon = length_from_polygon_to_kp
+            time_from_current_kp_to_polygon = time_from_polygon_to_kp
+
+            trail_length += length_from_polygon_to_kp
+            trail_time += time_from_polygon_to_kp
+
+            # trail_weight = float(current_row[10])
+            trail_weight = float(current_row[8]) # Превращаем вид контейнера в объём контейнера
+            load_time = culculate_load_time(current_row[8], 1, containers_data)
+            trail_time += load_time
+            whole_containers_amount = 1 # Есть площадки с несколькими контейнерами, мы их нормализуем
+            routes_amount = 1
+            last_kp_state = current_row[6]
+            last_kp_type = current_row[8]
+            routes_list = current_row[3] + ' / ' + current_row[7]
+
+            
+
+            ####
+
+            trail_length += length_from_current_kp_to_polygon
+            trail_time += time_from_current_kp_to_polygon
+            
+            trail = {
+                # 'Время для сравнения': (trail_time + current_trail_time + current_load_time + time_from_current_kp_to_polygon),
+                # 'Время работы': working_time,
+                # 'Общая загрузка': (trail_weight + current_trail_weight ),
+                # 'Максимальная загрузка': car_max_weight,
+                'ID маршрута': '',
+                'Лот': lot,
+                'Название района': last_kp_state,
+                'Состав маршрута': routes_list,
+                'Тип контейнера': last_kp_type,
+                'Тип машины': car_lable,
+                'id машины': car_code,
+                'Количество КП': routes_amount,
+                'Количество контейнеров': whole_containers_amount,
+                'Масса кг': trail_weight * 93,
+                'Общий объём загрузки машины (м3)': trail_weight,
+                'Дистанция от полигона до 1 кп (км)': length_from_last_kp_to_polygon,
+                'Дистанция между КП (км)': trail_length - length_from_last_kp_to_polygon - length_from_current_kp_to_polygon,
+                'Дистанция от последней КП до полигона (км)': length_from_current_kp_to_polygon,
+                'Средняя скорость машины (км/ч)': (speed_city_kmh + speed_road_kmh) / 2,
+                'Время разгрузки (мин)': car_time_unload,
+                'Общее время погрузки (час)': load_time / 60,
+                'Время разгрузки (час)': car_time_unload / 60,
+                'Время в движении (час)': (trail_time - load_time - car_time_unload) / 60,
+                'Общее время прохождения маршрута (час)': trail_time / 60,
+                'Время стационарной работы (мин)': load_time + car_time_unload,
+                'Длина маршрута (км)': trail_length,
+                'Общее время маршрута (мин)': trail_time
+            }
+
+            trails.append(trail)
         
-        trails = {
-            # 'Время для сравнения': (trail_time + current_trail_time + current_load_time + time_from_current_kp_to_polygon),
-            # 'Время работы': working_time,
-            # 'Общая загрузка': (trail_weight + current_trail_weight ),
-            # 'Максимальная загрузка': car_max_weight,
-            'ID маршрута': '',
-            'Лот': lot,
-            'Название района': last_kp_state,
-            'Состав маршрута': routes_list,
-            'Тип контейнера': last_kp_type,
-            'Тип машины': car_lable,
-            'id машины': car_code,
-            'Количество КП': routes_amount,
-            'Количество контейнеров': whole_containers_amount,
-            'Масса кг': trail_weight * 93,
-            'Общий объём загрузки машины (м3)': trail_weight,
-            'Дистанция от полигона до 1 кп (км)': length_from_last_kp_to_polygon,
-            'Дистанция между КП (км)': trail_length - length_from_last_kp_to_polygon - length_from_current_kp_to_polygon,
-            'Дистанция от последней КП до полигона (км)': length_from_current_kp_to_polygon,
-            'Средняя скорость машины (км/ч)': (speed_city_kmh + speed_road_kmh) / 2,
-            'Время разгрузки (мин)': car_time_unload,
-            'Общее время погрузки (час)': load_time / 60,
-            'Время разгрузки (час)': car_time_unload / 60,
-            'Время в движении (час)': (trail_time - load_time - car_time_unload) / 60,
-            'Общее время прохождения маршрута (час)': trail_time / 60,
-            'Время стационарной работы (мин)': load_time + car_time_unload,
-            'Длина маршрута (км)': trail_length,
-            'Общее время маршрута (мин)': trail_time
-        }
+        copy_kp_data.drop(current_row.Index, inplace=True)
 
         print('Trails: ', trails)
         return copy_kp_data, trails
@@ -122,6 +132,7 @@ def calculate_trail_for_single(kp_data, containers_data, working_time, car, lot,
         return copy_kp_data, trails
 
 def calculate_trail_for_trip(kp_data, containers_data, working_time, car, lot, G, main_point):
+    trails = []
     # Получаем данные о транспортном средстве
     car_lable = car[0] # Марка ТС
     car_code = car[6] # Код ТС
@@ -248,7 +259,7 @@ def calculate_trail_for_trip(kp_data, containers_data, working_time, car, lot, G
     trail_length += length_from_current_kp_to_polygon
     trail_time += time_from_current_kp_to_polygon
         
-    trails = {
+    trail = {
         # 'Время для сравнения': (trail_time + current_trail_time + current_load_time + time_from_current_kp_to_polygon),
         # 'Время работы': working_time,
         # 'Общая загрузка': (trail_weight + current_trail_weight ),
@@ -277,11 +288,12 @@ def calculate_trail_for_trip(kp_data, containers_data, working_time, car, lot, G
         'Длина маршрута (км)': trail_length,
         'Общее время маршрута (мин)': trail_time
     }
-
+    trails.append(trail)
     print('Trails: ', trails)
     return copy_kp_data, trails
 
 def calculate_trail_for_kgm(kp_data, containers_data, working_time, car, lot, G, main_point):
+    trails = []
     # Получаем данные о транспортном средстве
     car_lable = car[0] # Марка ТС
     car_code = car[6] # Код ТС
@@ -410,7 +422,7 @@ def calculate_trail_for_kgm(kp_data, containers_data, working_time, car, lot, G,
     trail_length += length_from_current_kp_to_polygon
     trail_time += time_from_current_kp_to_polygon
         
-    trails = {
+    trail = {
         # 'Время для сравнения': (trail_time + current_trail_time + current_load_time + time_from_current_kp_to_polygon),
         # 'Время работы': working_time,
         # 'Общая загрузка': (trail_weight + current_trail_weight ),
@@ -440,6 +452,7 @@ def calculate_trail_for_kgm(kp_data, containers_data, working_time, car, lot, G,
         'Общее время маршрута (мин)': trail_time
     }
 
+    trails.append(trail)
     print('Trails: ', trails)
     return copy_kp_data, trails
 
