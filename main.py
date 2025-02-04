@@ -30,6 +30,14 @@ def add_lots(kp_data):
 
     return lots
 
+def filtered_by_kgm(lot_sorted_data):
+    lot_sorted_data['Объем суточный КГМ'] = lot_sorted_data['Объем суточный КГМ'].astype("string")
+    lot_car_data = lot_sorted_data[lot_sorted_data['Объем суточный КГМ'].str.len() > 0]
+
+    print('Filtered by kgm: ', lot_car_data.shape[0])
+
+    return lot_car_data
+
 def filtered_by_cars(lot_sorted_data, car):
 
     kp_values = car.split(';')
@@ -105,13 +113,20 @@ def main(kp_data, auto_data, main_point, containers_data, working_time, accuracy
             logging.info(f"Начинаем создавать маршруты для машины {car[0]} в лоте {lot} ")
             kp_cars_data = filtered_by_cars(lot_sorted_data, car[1])
             
-            routes = kp_cars_data
+            routes = filtered_by_kgm(lot_sorted_data)
+            if car[0] == 'КАМАЗ 43255-6010-69 (самосвал)':
+                routes = filtered_by_kgm(lot_sorted_data)
+            else:
+                routes = kp_cars_data
+
             while not routes.shape[0] < 1:
                 logging.info(f"Осталось {routes.shape[0]} контейнерных площадок для рассчёта.")
                 all_trails = []
                 trails = []
                 if car[0] == 'КАМАЗ 43255-3010-69, МК-4512-04' or car[0] == 'Бункеровоз':
                     routes, trails = calculate_trail_for_single(routes, containers_data, working_time, car, lot, G, main_point)
+                elif car[0] == 'КАМАЗ 43255-6010-69 (самосвал)':
+                    routes, trails = calculate_trail_for_kgm(routes, containers_data, working_time, car, lot, G, main_point)
                 else:
                     routes, trails = calculate_trail_for_trip(routes, containers_data, working_time, car, lot, G, main_point)
 
