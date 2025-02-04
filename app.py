@@ -91,7 +91,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             
         try:
             logging.info(f"Чтение файла: {self.file_path}")
-            # self.df = pd.read_excel(self.file_path)
             
             # self.main_point = (float(56.2509833), float(43.8318333)) # База
             self.main_point = (float(56.320699), float(43.564531)) # Полигон
@@ -105,13 +104,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.accuracy = int(self.accuracy.text()+'000')
 
             self.process_data()
-            # self.save_results()
-            
-            # QtWidgets.QMessageBox.information(
-            #     self, 
-            #     "Успех", 
-            #     "Расчеты завершены успешно!\nФайл сохранен в папке 'results'"
-            # )
             
         except Exception as e:
             self.show_error(f"Ошибка: {str(e)}")
@@ -126,9 +118,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             t1 = Thread(target=main.main, args=(self.kp_data, self.auto_data, self.main_point, self.containers_data, self.working_time, self.accuracy, logging))
             t1.start()
             
-            # main.main(self.kp_data, self.auto_data, self.main_point, self.containers_data, self.working_time, logging)
-            # self.df['Сумма'] = self.df.sum(axis=1)
-            # self.df['Среднее'] = self.df.mean(axis=1)
         except Exception as e:
             logging.error(f"Ошибка обработки данных: {str(e)}")
             raise

@@ -101,6 +101,9 @@
     <property name="text">
      <string>720</string>
     </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    </property>
    </widget>
    <widget class="QLabel" name="label_working_time">
     <property name="geometry">
@@ -135,7 +138,7 @@
      </font>
     </property>
     <property name="text">
-     <string>Точность рассчёта расстояния (10-50)</string>
+     <string>Точность расчёта расстояния (10-50)</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="accuracy">
@@ -154,6 +157,9 @@
     </property>
     <property name="text">
      <string>20</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
     </property>
    </widget>
   </widget>

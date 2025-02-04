@@ -47,6 +47,7 @@ class Ui_MainWindow(object):
         font.setBold(False)
         font.setWeight(50)
         self.working_time.setFont(font)
+        self.working_time.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.working_time.setObjectName("working_time")
         self.label_working_time = QtWidgets.QLabel(self.centralwidget)
         self.label_working_time.setGeometry(QtCore.QRect(30, 50, 201, 21))
@@ -65,6 +66,7 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(14)
         self.accuracy.setFont(font)
+        self.accuracy.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.accuracy.setObjectName("accuracy")
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
@@ -76,11 +78,11 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "Расчёт маршрутов"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Рассчёт маршрутов"))
         self.btn_load.setText(_translate("MainWindow", "Загрузить файл"))
         self.btn_calculate.setText(_translate("MainWindow", "Рассчитать"))
         self.label_path.setText(_translate("MainWindow", "Файл не выбран"))
         self.working_time.setText(_translate("MainWindow", "720"))
         self.label_working_time.setText(_translate("MainWindow", "Рабочее время (мин)"))
-        self.label_accuracy.setText(_translate("MainWindow", "Точность рассчёта расстояния (10-50)"))
+        self.label_accuracy.setText(_translate("MainWindow", "Точность расчёта расстояния (10-50)"))
         self.accuracy.setText(_translate("MainWindow", "20"))

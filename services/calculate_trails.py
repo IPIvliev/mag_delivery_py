@@ -1,5 +1,4 @@
-from services.travel_length import shortest_travel_length, shortest_travel_length_iter
-import pandas as pd
+from services.travel_length import shortest_travel_length_iter
 
 def culculate_load_time(container_type, container_count, containers_data):
     # Получаем время загрузки для конкретного типа контейнера
