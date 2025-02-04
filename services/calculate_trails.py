@@ -22,7 +22,7 @@ def check_car_max_weight(car_max_weight, kp_type):
 
     return car_max_weight
 
-def calculate_trail_for_single(kp_data, containers_data, working_time, car, lot, G, main_point):
+def calculate_trail_for_single(kp_data, containers_data, working_time, car, lot, G, main_point, single_route):
     car_lable = car[0] # Марка ТС
     car_code = car[6] # Код ТС
     car_containers_type = car[1] # Виды контейнеров
@@ -56,18 +56,19 @@ def calculate_trail_for_single(kp_data, containers_data, working_time, car, lot,
 
         # print('For 8 and more: ', 'Car: ', car[0], 'lot: ', lot, current_row)
         length_from_polygon_to_kp = shortest_travel_length_iter(current_row, G, main_point)
-        time_from_from_polygon_to_kp = length_from_polygon_to_kp / speed_road_kmh * 60
+        time_from_polygon_to_kp = length_from_polygon_to_kp / speed_road_kmh * 60
         length_from_last_kp_to_polygon = length_from_polygon_to_kp
 
         length_from_current_kp_to_polygon = length_from_polygon_to_kp
-        time_from_current_kp_to_polygon = time_from_from_polygon_to_kp
+        time_from_current_kp_to_polygon = time_from_polygon_to_kp
 
-        trail_length = length_from_polygon_to_kp
-        trail_time = time_from_from_polygon_to_kp
+        trail_length += length_from_polygon_to_kp
+        trail_time += time_from_polygon_to_kp
 
         # trail_weight = float(current_row[10])
         trail_weight = float(current_row[8]) # Превращаем вид контейнера в объём контейнера
-        load_time = culculate_load_time(current_row[8], current_row[9], containers_data)
+        load_time = culculate_load_time(current_row[8], 1, containers_data)
+        trail_time += load_time
         whole_containers_amount = 1 # Есть площадки с несколькими контейнерами, мы их нормализуем
         routes_amount = 1
         last_kp_state = current_row[6]
@@ -80,7 +81,7 @@ def calculate_trail_for_single(kp_data, containers_data, working_time, car, lot,
 
         trail_length += length_from_current_kp_to_polygon
         trail_time += time_from_current_kp_to_polygon
-            
+        
         trails = {
             # 'Время для сравнения': (trail_time + current_trail_time + current_load_time + time_from_current_kp_to_polygon),
             # 'Время работы': working_time,

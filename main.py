@@ -80,7 +80,7 @@ def load_convert_coordinates(kp_data, lot):
 
     return filtered_data
 
-def main(kp_data, auto_data, main_point, containers_data, working_time, accuracy, logging):
+def main(kp_data, auto_data, main_point, containers_data, working_time, accuracy, logging, single_route):
     """
     Основная функция: загружает координаты, преобразует их и строит маршрут.
     :param file_path: Путь к файлу с координатами.
@@ -125,7 +125,7 @@ def main(kp_data, auto_data, main_point, containers_data, working_time, accuracy
                 all_trails = []
                 trails = []
                 if car[0] == 'КАМАЗ 43255-3010-69, МК-4512-04' or car[0] == 'Бункеровоз':
-                    routes, trails = calculate_trail_for_single(routes, containers_data, working_time, car, lot, G, main_point)
+                    routes, trails = calculate_trail_for_single(routes, containers_data, working_time, car, lot, G, main_point, single_route)
                 elif car[0] == 'КАМАЗ 43255-6010-69 (самосвал)':
                     routes, trails = calculate_trail_for_kgm(routes, containers_data, working_time, car, lot, G, main_point)
                 else:

@@ -109,12 +109,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def process_data(self):
         try:
+            single_route = self.checkBox.isChecked()
+            print('single_route', single_route)
             try:
                 os.remove(f"results/result.xlsx")
             except:
                 pass
             logging.info("Обработка данных")
-            t1 = Thread(target=main.main, args=(self.kp_data, self.auto_data, self.main_point, self.containers_data, self.working_time, self.accuracy, logging))
+            t1 = Thread(target=main.main, args=(self.kp_data, self.auto_data, self.main_point, self.containers_data, self.working_time, self.accuracy, logging, single_route))
             t1.start()
             
         except Exception as e:
