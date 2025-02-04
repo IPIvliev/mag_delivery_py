@@ -122,11 +122,11 @@ def calculate_trail_for_single(kp_data, containers_data, working_time, car, lot,
         
         copy_kp_data.drop(current_row.Index, inplace=True)
 
-        print('Trails: ', trails)
+        # print('Trails: ', trails)
         return copy_kp_data, trails
 
     except StopIteration:
-        print("Success finished lot " + str(lot))
+        # print("Success finished lot " + str(lot))
         copy_kp_data = []
         trails = []
         return copy_kp_data, trails
@@ -289,7 +289,7 @@ def calculate_trail_for_trip(kp_data, containers_data, working_time, car, lot, G
         'Общее время маршрута (мин)': trail_time
     }
     trails.append(trail)
-    print('Trails: ', trails)
+    # print('Trails: ', trails)
     return copy_kp_data, trails
 
 def calculate_trail_for_kgm(kp_data, containers_data, working_time, car, lot, G, main_point):
@@ -453,7 +453,7 @@ def calculate_trail_for_kgm(kp_data, containers_data, working_time, car, lot, G,
     }
 
     trails.append(trail)
-    print('Trails: ', trails)
+    # print('Trails: ', trails)
     return copy_kp_data, trails
 
 # def calculate_trail(routes, working_time, car, lot, G, main_point):

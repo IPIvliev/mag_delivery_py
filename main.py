@@ -35,7 +35,7 @@ def filtered_by_kgm(lot_sorted_data):
     # lot_sorted_data['Объем суточный КГМ'] = lot_sorted_data['Объем суточный КГМ'].astype("string")
     lot_car_data = lot_sorted_data[~lot_sorted_data['Объем суточный КГМ'].isnull()]
 
-    print('Filtered by kgm: ', lot_sorted_data.shape[0], lot_car_data.shape[0])
+    # print('Filtered by kgm: ', lot_sorted_data.shape[0], lot_car_data.shape[0])
 
     return lot_car_data
 
@@ -56,7 +56,7 @@ def filtered_by_cars(lot_sorted_data, car):
 
     lot_car_data = lot_sorted_data[lot_sorted_data['Вид контейнера'].isin(kp_values)]
 
-    print('KP with container types: ', kp_values, lot_car_data.shape[0])
+    # print('KP with container types: ', kp_values, lot_car_data.shape[0])
 
     return lot_car_data
 
@@ -151,8 +151,8 @@ def main(kp_data, auto_data, main_point, containers_data, working_time, accuracy
                     all_trails_df = pd.DataFrame(all_trails)
                     all_trails_df.to_excel(output_file, index=False)
 
-            # if single_route == False:
-            #     sum_trails('results/result.xlsx', working_time, lot, car[0], logging)
+            if single_route == False:
+                sum_trails('results/result.xlsx', working_time, lot, car[0], logging)
 
             logging.info(f"Расчёт для машины {car[0]} в лоте {lot} завершён.")
 

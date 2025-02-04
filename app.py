@@ -110,7 +110,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def process_data(self):
         try:
             single_route = self.checkBox.isChecked()
-            print('single_route', single_route)
+            # print('single_route', single_route)
             try:
                 os.remove(f"results/result.xlsx")
                 os.remove(f"results/result_optimize.xlsx")
