@@ -70,6 +70,8 @@ def load_convert_coordinates(kp_data, lot):
     if 'Координаты площадки (широта)' not in kp_data.columns or 'Координаты площадки (долгота)' not in kp_data.columns:
         raise ValueError("Файл должен содержать столбцы 'Координаты площадки (широта)' и 'Координаты площадки (долгота)'")
     
+    kp_data = kp_data[~kp_data['Координаты площадки (широта)'].isnull()]
+
     # Преобразование координат
     kp_data['latitude_dd'] = kp_data['Координаты площадки (широта)'].apply(dm_to_dd)
     kp_data['longitude_dd'] = kp_data['Координаты площадки (долгота)'].apply(dm_to_dd)
