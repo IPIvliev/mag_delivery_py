@@ -9,7 +9,7 @@ def sum_trails(file_path, working_time, lot, car_type, logging):
 
     trails = []
 
-    while not copy_trails_data.shape[0] <= 1:
+    while not copy_trails_data.shape[0] < 1:
         print('copy_trails_data.shape[0]: ', copy_trails_data.shape[0])
         iterrows = copy_trails_data.itertuples(index = True)
 

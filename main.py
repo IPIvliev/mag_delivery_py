@@ -3,7 +3,7 @@ import os
 import pandas as pd
 from services.calculate_trails import calculate_trail_for_single, calculate_trail_for_trip, calculate_trail_for_kgm
 from services.sum_trails import sum_trails
-
+from services.merge_routes_1 import merge
 
 def sort_data(G, lot_filtered_data, main_point, lot):
     sorted_data = lot_filtered_data # .sort_values(by='distance_to_main_point')
@@ -151,9 +151,12 @@ def main(kp_data, auto_data, main_point, containers_data, working_time, accuracy
                     all_trails_df = pd.DataFrame(all_trails)
                     all_trails_df.to_excel(output_file, index=False)
 
-            if single_route == False:
-                sum_trails('results/result.xlsx', working_time, lot, car[0], logging)
-
             logging.info(f"Расчёт для машины {car[0]} в лоте {lot} завершён.")
+
+    if single_route == False:
+        input_file = f"results/result.xlsx"
+        output_file = f"results/result_optimized.xlsx"
+        # sum_trails('results/result.xlsx', working_time, lot, car[0], logging)
+        merge(input_file, output_file, working_time, logging)
 
     logging.warning(f"Расчёт всех марщрутов завершён!")
