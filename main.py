@@ -2,8 +2,7 @@ import osmnx as ox
 import os
 import pandas as pd
 from services.calculate_trails import calculate_trail_for_single, calculate_trail_for_trip, calculate_trail_for_kgm
-from services.sum_trails import sum_trails
-from services.merge_routes_1 import merge
+from services.merge_routes import merge
 
 def sort_data(G, lot_filtered_data, main_point, lot):
     sorted_data = lot_filtered_data # .sort_values(by='distance_to_main_point')
@@ -81,7 +80,7 @@ def load_convert_coordinates(kp_data, lot):
 
     return filtered_data
 
-def main(kp_data, auto_data, main_point, containers_data, working_time, accuracy, logging, single_route):
+def main(kp_data, auto_data, main_point, containers_data, working_time, accuracy, to_kg, logging):
     """
     Основная функция: загружает координаты, преобразует их и строит маршрут.
     :param file_path: Путь к файлу с координатами.
@@ -104,6 +103,7 @@ def main(kp_data, auto_data, main_point, containers_data, working_time, accuracy
     # Загрузка, преобразование координат по лотам
     logging.warning(f"Загружаем карту в радиусе {accuracy/1000} км от полигона. Это длительный процесс, не выключайте программу.")
     G = ox.graph_from_point(center_point=main_point, dist=accuracy, network_type='drive')
+    to_kg = to_kg * 100
 
     for lot in lots:
         # Конвертируем координаты и фильтруем по лотам
@@ -126,11 +126,11 @@ def main(kp_data, auto_data, main_point, containers_data, working_time, accuracy
                 all_trails = []
                 trails = []
                 if car[0] == 'КАМАЗ 43255-3010-69, МК-4512-04' or car[0] == 'Бункеровоз':
-                    routes, trails = calculate_trail_for_single(routes, containers_data, working_time, car, lot, G, main_point)
+                    routes, trails = calculate_trail_for_single(routes, containers_data, working_time, car, lot, G, main_point, to_kg)
                 elif car[0] == 'КАМАЗ 43255-6010-69 (самосвал)':
-                    routes, trails = calculate_trail_for_kgm(routes, containers_data, working_time, car, lot, G, main_point)
+                    routes, trails = calculate_trail_for_kgm(routes, containers_data, working_time, car, lot, G, main_point, to_kg)
                 else:
-                    routes, trails = calculate_trail_for_trip(routes, containers_data, working_time, car, lot, G, main_point)
+                    routes, trails = calculate_trail_for_trip(routes, containers_data, working_time, car, lot, G, main_point, to_kg)
 
 
                 for trail in trails:
@@ -153,10 +153,10 @@ def main(kp_data, auto_data, main_point, containers_data, working_time, accuracy
 
             logging.info(f"Расчёт для машины {car[0]} в лоте {lot} завершён.")
 
-    if single_route == False:
-        input_file = f"results/result.xlsx"
-        output_file = f"results/result_optimized.xlsx"
-        # sum_trails('results/result.xlsx', working_time, lot, car[0], logging)
-        merge(input_file, output_file, working_time, logging)
+
+    input_file = f"results/result.xlsx"
+    output_file = f"results/result_optimized.xlsx"
+    # sum_trails('results/result.xlsx', working_time, lot, car[0], logging)
+    merge(input_file, output_file, working_time, logging)
 
     logging.warning(f"Расчёт всех марщрутов завершён!")

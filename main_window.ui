@@ -17,10 +17,10 @@
    <widget class="QPushButton" name="btn_load">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>30</x>
       <y>10</y>
-      <width>111</width>
-      <height>23</height>
+      <width>151</width>
+      <height>31</height>
      </rect>
     </property>
     <property name="text">
@@ -50,10 +50,10 @@
    <widget class="QLabel" name="label_path">
     <property name="geometry">
      <rect>
-      <x>430</x>
+      <x>190</x>
       <y>10</y>
-      <width>341</width>
-      <height>21</height>
+      <width>581</width>
+      <height>31</height>
      </rect>
     </property>
     <property name="text">
@@ -73,7 +73,7 @@
    <widget class="QLineEdit" name="working_time">
     <property name="geometry">
      <rect>
-      <x>220</x>
+      <x>370</x>
       <y>47</y>
       <width>113</width>
       <height>30</height>
@@ -127,7 +127,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>90</y>
+      <y>123</y>
       <width>341</width>
       <height>21</height>
      </rect>
@@ -145,7 +145,7 @@
     <property name="geometry">
      <rect>
       <x>371</x>
-      <y>87</y>
+      <y>120</y>
       <width>113</width>
       <height>30</height>
      </rect>
@@ -162,13 +162,13 @@
      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
     </property>
    </widget>
-   <widget class="QCheckBox" name="checkBox">
+   <widget class="QLabel" name="label_to_kg">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>124</y>
-      <width>211</width>
-      <height>31</height>
+      <x>29</x>
+      <y>87</y>
+      <width>341</width>
+      <height>21</height>
      </rect>
     </property>
     <property name="font">
@@ -177,13 +177,28 @@
      </font>
     </property>
     <property name="text">
-     <string>Один маршрут в день</string>
+     <string>Коэффициент перевода м3 в кг</string>
     </property>
-    <property name="iconSize">
-     <size>
-      <width>16</width>
-      <height>16</height>
-     </size>
+   </widget>
+   <widget class="QLineEdit" name="to_kg">
+    <property name="geometry">
+     <rect>
+      <x>370</x>
+      <y>83</y>
+      <width>113</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>14</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>0.93</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
     </property>
    </widget>
   </widget>

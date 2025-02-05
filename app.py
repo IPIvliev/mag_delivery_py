@@ -100,6 +100,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.auto_data = pd.read_excel(file_path, sheet_name='Авто')
             self.containers_data = pd.read_excel(file_path, sheet_name='Виды контейнеров')
             self.working_time = int(self.working_time.text())
+            self.to_kg = float(self.to_kg.text())
             self.accuracy = int(self.accuracy.text()+'000')
 
             self.process_data()
@@ -109,15 +110,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def process_data(self):
         try:
-            single_route = self.checkBox.isChecked()
-            # print('single_route', single_route)
             try:
                 os.remove(f"results/result.xlsx")
                 os.remove(f"results/result_optimize.xlsx")
             except:
                 pass
             logging.info("Обработка данных")
-            t1 = Thread(target=main.main, args=(self.kp_data, self.auto_data, self.main_point, self.containers_data, self.working_time, self.accuracy, logging, single_route))
+            t1 = Thread(target=main.main, args=(self.kp_data, self.auto_data, self.main_point, self.containers_data, self.working_time, self.accuracy, self.to_kg, logging))
             t1.start()
             
         except Exception as e:

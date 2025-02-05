@@ -22,7 +22,7 @@ def check_car_max_weight(car_max_weight, kp_type):
 
     return car_max_weight
 
-def calculate_trail_for_single(kp_data, containers_data, working_time, car, lot, G, main_point):
+def calculate_trail_for_single(kp_data, containers_data, working_time, car, lot, G, main_point, to_kg):
     car_lable = car[0] # Марка ТС
     car_code = car[6] # Код ТС
     car_containers_type = car[1] # Виды контейнеров
@@ -102,7 +102,7 @@ def calculate_trail_for_single(kp_data, containers_data, working_time, car, lot,
                 'id машины': car_code,
                 'Количество КП': routes_amount,
                 'Количество контейнеров': whole_containers_amount,
-                'Масса кг': trail_weight * 93,
+                'Масса кг': trail_weight * to_kg,
                 'Общий объём загрузки машины (м3)': trail_weight,
                 'Дистанция от полигона до 1 кп (км)': length_from_last_kp_to_polygon,
                 'Дистанция между КП (км)': trail_length - length_from_last_kp_to_polygon - length_from_current_kp_to_polygon,
@@ -131,7 +131,7 @@ def calculate_trail_for_single(kp_data, containers_data, working_time, car, lot,
         trails = []
         return copy_kp_data, trails
 
-def calculate_trail_for_trip(kp_data, containers_data, working_time, car, lot, G, main_point):
+def calculate_trail_for_trip(kp_data, containers_data, working_time, car, lot, G, main_point, to_kg):
     trails = []
     # Получаем данные о транспортном средстве
     car_lable = car[0] # Марка ТС
@@ -273,7 +273,7 @@ def calculate_trail_for_trip(kp_data, containers_data, working_time, car, lot, G
         'id машины': car_code,
         'Количество КП': routes_amount,
         'Количество контейнеров': whole_containers_amount,
-        'Масса кг': trail_weight * 93,
+        'Масса кг': trail_weight * to_kg,
         'Общий объём загрузки машины (м3)': trail_weight,
         'Дистанция от полигона до 1 кп (км)': length_from_last_kp_to_polygon,
         'Дистанция между КП (км)': trail_length - length_from_last_kp_to_polygon - length_from_current_kp_to_polygon,
@@ -292,7 +292,7 @@ def calculate_trail_for_trip(kp_data, containers_data, working_time, car, lot, G
     # print('Trails: ', trails)
     return copy_kp_data, trails
 
-def calculate_trail_for_kgm(kp_data, containers_data, working_time, car, lot, G, main_point):
+def calculate_trail_for_kgm(kp_data, containers_data, working_time, car, lot, G, main_point, to_kg):
     trails = []
     # Получаем данные о транспортном средстве
     car_lable = car[0] # Марка ТС
@@ -436,7 +436,7 @@ def calculate_trail_for_kgm(kp_data, containers_data, working_time, car, lot, G,
         'id машины': car_code,
         'Количество КП': routes_amount,
         'Количество контейнеров': whole_containers_amount,
-        'Масса кг': trail_weight * 93,
+        'Масса кг': trail_weight * to_kg,
         'Общий объём загрузки машины (м3)': trail_weight,
         'Дистанция от полигона до 1 кп (км)': length_from_last_kp_to_polygon,
         'Дистанция между КП (км)': trail_length - length_from_last_kp_to_polygon - length_from_current_kp_to_polygon,
