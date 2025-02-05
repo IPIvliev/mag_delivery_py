@@ -116,7 +116,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             except:
                 pass
             logging.info("Обработка данных")
-            t1 = Thread(target=main.main, args=(self.kp_data, self.auto_data, self.main_point, self.containers_data, self.working_time, self.accuracy, self.to_kg, logging))
+            t1 = Thread(target=main.main, args=(self.kp_data, self.auto_data, self.main_point, self.containers_data, self.working_time, self.accuracy, self.to_kg, logging), daemon=True)
             t1.start()
             
         except Exception as e:
