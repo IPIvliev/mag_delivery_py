@@ -16,14 +16,23 @@ def dm_to_dd(dm):
     :param dm: Строка в формате DM (например, 56.14.833)
     :return: Десятичные градусы (float)
     """
-    degrees, minutes_decimal, sec = dm.split('.')
-    minutes_decimal = minutes_decimal + sec
+    coor = str(dm).replace(',', '.')
 
-    degrees = int(degrees)  # Градусы
-    minutes = float(minutes_decimal) / 1000  # Перевод в десятичные минуты
+    coor_len = len(coor.split('.'))
 
-    # Преобразование в десятичные градусы
-    return degrees + minutes / 60
+    # print('Coor len: ', coor_len)
+
+    if coor_len == 3:
+        degrees, minutes_decimal, sec = dm.split('.')
+        minutes_decimal = minutes_decimal + sec
+
+        degrees = int(degrees)  # Градусы
+        minutes = float(minutes_decimal) / 1000  # Перевод в десятичные минуты
+
+        # Преобразование в десятичные градусы
+        return degrees + minutes / 60
+    else:
+        return float(coor)
 
 def add_lots(kp_data):
     lots = kp_data['Лот'].unique()
@@ -39,6 +48,7 @@ def filtered_by_kgm(lot_sorted_data):
     return lot_car_data
 
 def filtered_by_cars(lot_sorted_data, car):
+    # print('Вид контейнера ', lot_sorted_data['Вид контейнера'])
     lot_sorted_data['Вид контейнера'] = lot_sorted_data['Вид контейнера'].astype("string")
     lot_sorted_data['Вид контейнера'] = lot_sorted_data['Вид контейнера'].str.strip()
     lot_sorted_data['Вид контейнера'] = lot_sorted_data['Вид контейнера'].str.replace(',', '.')

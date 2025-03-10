@@ -227,7 +227,7 @@ def calculate_trail_for_trip(kp_data, containers_data, working_time, car, lot, G
             # print('pass ', current_row.Index)
 
             routes_amount += 1
-            routes_list += current_row[3] + ' / ' + current_row[7] + '; '
+            routes_list += str(current_row[3]) + ' / ' + str(current_row[7]) + '; '
 
             # remove_routes.append(current_row.Index)
             copy_kp_data.drop(last_row.Index, inplace=True)
@@ -390,7 +390,7 @@ def calculate_trail_for_kgm(kp_data, containers_data, working_time, car, lot, G,
             # print('pass ', current_row.Index)
 
             routes_amount += 1
-            routes_list += current_row[3] + ' / ' + current_row[7] + '; '
+            routes_list += str(current_row[3]) + ' / ' + str(current_row[7]) + '; '
 
             # remove_routes.append(current_row.Index)
             copy_kp_data.drop(last_row.Index, inplace=True)
