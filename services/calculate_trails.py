@@ -3,6 +3,9 @@ from services.travel_length import shortest_travel_length_iter
 def culculate_load_time(container_type, container_count, containers_data):
     # Получаем время загрузки для конкретного типа контейнера
     container_type = container_type.replace('.', ',')
+
+    print(container_type)
+   
     load_time = containers_data[containers_data['Вид контейнера'] == container_type]['Время загрузки,сек'].values[0]
     if container_type == 'бестарно':
         container_count = 1
@@ -167,8 +170,9 @@ def calculate_trail_for_trip(kp_data, containers_data, working_time, car, lot, G
     trail_length += length_from_last_kp_to_polygon
     trail_time += time_from_last_kp_to_polygon
 
-    trail_weight += last_row[10]
-    container_count = last_row[9]
+    print('last_row[10]1: ', last_row[1], last_row[10], last_row[9])
+    trail_weight += float(last_row[10])
+    container_count = int(last_row[9])
     if last_row[8] == 'бестарно':
         container_count = 1
     whole_containers_amount += container_count
@@ -206,9 +210,10 @@ def calculate_trail_for_trip(kp_data, containers_data, working_time, car, lot, G
         current_trail_length = shortest_travel_length_iter(last_row, G, current_row_coords)
         current_trail_time = (current_trail_length / speed_city_kmh) * 60
 
+        print('current_row[10]: ', current_row[1], current_row[10])
         current_trail_weight = float(current_row[10])
 
-        current_load_time = culculate_load_time(current_row[8], current_row[9], containers_data)
+        current_load_time = culculate_load_time(current_row[8], int(current_row[9]), containers_data)
 
         length_from_current_kp_to_polygon = shortest_travel_length_iter(current_row, G, main_point)
         time_from_current_kp_to_polygon = length_from_current_kp_to_polygon / speed_road_kmh * 60
@@ -219,7 +224,7 @@ def calculate_trail_for_trip(kp_data, containers_data, working_time, car, lot, G
             load_time += current_load_time
             trail_weight += current_trail_weight
                 
-            container_count = current_row[9]
+            container_count = int(current_row[9])
             if current_row[8] == 'бестарно':
                 container_count = 1
 
