@@ -85,10 +85,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             logging.info(f"Загружен файл: {file_path}")
 
     def calculate_data(self):
+        self.btn_calculate.setEnabled(False)
+        self.btn_calculate.setText("Идёт расчёт")
+
         if not self.file_path:
             self.show_error("Файл не выбран!")
             return
-            
+        
         try:
             logging.info(f"Чтение файла: {self.file_path}")
             
@@ -116,7 +119,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             except:
                 pass
             logging.info("Обработка данных")
-            t1 = Thread(target=main.main, args=(self.kp_data, self.auto_data, self.main_point, self.containers_data, self.working_time, self.accuracy, self.to_kg, logging), daemon=True)
+            t1 = Thread(target=main.main, args=(self.kp_data, self.auto_data, self.main_point, self.containers_data, self.working_time, int(self.accuracy), float(self.to_kg), logging), daemon=True)
             t1.start()
             
         except Exception as e:

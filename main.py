@@ -138,17 +138,26 @@ def main(kp_data, auto_data, main_point, containers_data, working_time, accuracy
                 all_trails = []
                 trails = []
                 if car[0] == 'КАМАЗ 43255-3010-69, МК-4512-04' or car[0] == 'Бункеровоз':
-                    routes, trails = calculate_trail_for_single(routes, containers_data, working_time, car, lot, G, main_point, to_kg)
+                    try:
+                        routes, trails = calculate_trail_for_single(routes, containers_data, working_time, car, lot, G, main_point, to_kg, logging)
+                    except:
+                        logging.error(f"Расчёт для машины {car[0]} в лоте {lot} прерван из-за ошибки.")
+                        break
                 elif car[0] == 'КАМАЗ 43255-6010-69 (самосвал)':
-                    routes, trails = calculate_trail_for_kgm(routes, containers_data, working_time, car, lot, G, main_point, to_kg)
+                    try:
+                        routes, trails = calculate_trail_for_kgm(routes, containers_data, working_time, car, lot, G, main_point, to_kg, logging)
+                    except:
+                        logging.error(f"Расчёт для машины {car[0]} в лоте {lot} прерван из-за ошибки.")
+                        break
                 else:
-                    routes, trails = calculate_trail_for_trip(routes, containers_data, working_time, car, lot, G, main_point, to_kg)
-
+                    try:
+                        routes, trails = calculate_trail_for_trip(routes, containers_data, working_time, car, lot, G, main_point, to_kg, logging)
+                    except:
+                        logging.error(f"Расчёт для машины {car[0]} в лоте {lot} прерван из-за ошибки.")
+                        break
 
                 for trail in trails:
                     all_trails.append(trail)
-
-
 
                 try:
                     trails_data = pd.read_excel('results/result.xlsx')
