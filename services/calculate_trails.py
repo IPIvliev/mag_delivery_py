@@ -75,7 +75,8 @@ def calculate_trail_for_single(kp_data, containers_data, working_time, car, lot,
             trail_time += time_from_polygon_to_kp
 
             # trail_weight = float(current_row[10])
-            trail_weight = float(current_row[8]) # Превращаем вид контейнера в объём контейнера
+            trail_weight = float(current_row[10])# Забираем объем суточный. Странно, но просили сделать
+            # trail_weight = float(current_row[8]) # Превращаем вид контейнера в объём контейнера
             try:
                 load_time = culculate_load_time(current_row[8], 1, containers_data)
             except:
