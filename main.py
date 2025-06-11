@@ -137,7 +137,7 @@ def main(kp_data, auto_data, main_point, containers_data, working_time, accuracy
                 routes = kp_cars_data
 
             while not routes.shape[0] < 1:
-                logging.info(f"Осталось {routes.shape[0]} контейнерных площадок для рассчёта.")
+                logging.info(f"Осталось {routes.shape[0]} контейнерных площадок для расчёта.")
                 all_trails = []
                 trails = []
 

@@ -96,7 +96,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             logging.info(f"Чтение файла: {self.file_path}")
             
             # self.main_point = (float(56.2509833), float(43.8318333)) # База
-            self.main_point = (float(56.320699), float(43.564531)) # Полигон
+            self.latitude = float(self.latitude.text())
+            self.longitude = float(self.longitude.text())
+            self.main_point = (self.latitude, self.longitude) # Полигон
+           
             # Загрузка данных из файлов
             file_path = self.file_path
             self.kp_data = pd.read_excel(file_path, sheet_name='КП')

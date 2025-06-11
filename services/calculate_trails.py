@@ -220,7 +220,7 @@ def calculate_trail_for_trip(kp_data, containers_data, working_time, car, lot, G
         current_trail_length = shortest_travel_length_iter(last_row, G, current_row_coords)
         current_trail_time = (current_trail_length / speed_city_kmh) * 60
 
-        # print('current_row[10]: ', current_row[1], current_row[10])
+        # print('last_kp_number current_row[10]: ', last_row[1], current_row[1], current_row[10])
         current_trail_weight = float(current_row[10])
 
         try:
@@ -255,9 +255,11 @@ def calculate_trail_for_trip(kp_data, containers_data, working_time, car, lot, G
             # print('last_row = current_row', last_row, current_row)
         else:
             # break
-            if (start_count_row < 5):
+            
+            # print('start_count_row ', start_count_row)
+            if (start_count_row < 1):
                 start_count_row += 1
-                # print('start_count_row ', start_count_row)
+                
                 continue
             else:
                 start_count_row = 0
