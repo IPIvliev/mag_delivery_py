@@ -257,7 +257,7 @@ def calculate_trail_for_trip(kp_data, containers_data, working_time, car, lot, G
             # break
             
             # print('start_count_row ', start_count_row)
-            if (start_count_row < 1):
+            if (start_count_row < 5):
                 start_count_row += 1
                 
                 continue
