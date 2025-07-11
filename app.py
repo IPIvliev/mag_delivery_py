@@ -108,6 +108,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.working_time = int(self.working_time.text())
             self.to_kg = float(self.to_kg.text())
             self.accuracy = int(self.accuracy.text()+'000')
+            self.distance = int(self.distance.text())
 
             self.process_data()
             
@@ -122,7 +123,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             except:
                 pass
             logging.info("Обработка данных")
-            t1 = Thread(target=main.main, args=(self.kp_data, self.auto_data, self.main_point, self.containers_data, self.working_time, int(self.accuracy), float(self.to_kg), logging), daemon=True)
+            t1 = Thread(target=main.main, args=(self.kp_data, self.auto_data, self.main_point, self.containers_data, self.working_time, int(self.accuracy), float(self.to_kg), int(self.distance), logging), daemon=True)
             t1.start()
             
         except Exception as e:

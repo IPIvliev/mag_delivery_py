@@ -95,7 +95,7 @@ def load_convert_coordinates(kp_data, lot):
 
     return filtered_data
 
-def main(kp_data, auto_data, main_point, containers_data, working_time, accuracy, to_kg, logging):
+def main(kp_data, auto_data, main_point, containers_data, working_time, accuracy, to_kg, distance, logging):
     """
     Основная функция: загружает координаты, преобразует их и строит маршрут.
     :param file_path: Путь к файлу с координатами.
@@ -145,20 +145,20 @@ def main(kp_data, auto_data, main_point, containers_data, working_time, accuracy
                 
                 if 'КАМАЗ 43255-3010' in car[0] or 'Бункеровоз' in car[0]:
                     try:
-                        routes, trails = calculate_trail_for_single(routes, containers_data, working_time, car, lot, G, main_point, to_kg, logging)
+                        routes, trails = calculate_trail_for_single(routes, containers_data, working_time, car, lot, G, main_point, to_kg, distance, logging)
                     except:
                         logging.error(f"Расчёт для машины {car[0]} в лоте {lot} прерван из-за ошибки.")
                         break
                 # if  car[0] == 'КАМАЗ 43255-6010-69 (самосвал)':
                 elif 'самосвал' in car[0]: # Если бункер вывозится только полным
                     try:
-                        routes, trails = calculate_trail_for_kgm(routes, containers_data, working_time, car, lot, G, main_point, to_kg, logging)
+                        routes, trails = calculate_trail_for_kgm(routes, containers_data, working_time, car, lot, G, main_point, to_kg, distance, logging)
                     except:
                         logging.error(f"Расчёт для машины {car[0]} в лоте {lot} прерван из-за ошибки.")
                         break
                 else:
                     try:
-                        routes, trails = calculate_trail_for_trip(routes, containers_data, working_time, car, lot, G, main_point, to_kg, logging)
+                        routes, trails = calculate_trail_for_trip(routes, containers_data, working_time, car, lot, G, main_point, to_kg, distance, logging)
                     except:
                         logging.error(f"Расчёт для машины {car[0]} в лоте {lot} прерван из-за ошибки.")
                         break
