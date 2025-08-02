@@ -21,7 +21,7 @@ def shortest_travel_length_iter(row, G, start_point, distance):
 
     return route_length_km
 
-def shortest_travel_length_to_polygon_iter(row, G, start_point, distance):
+def shortest_travel_length_to_polygon_iter(row, G, start_point, distance, logging):
     # Поиск ближайших узлов графа для начальной и конечной точки
     origin_node = ox.distance.nearest_nodes(G, X=start_point[1], Y=start_point[0])
     destination_node = ox.distance.nearest_nodes(G, X=row.longitude_dd, Y=row.latitude_dd)
@@ -29,6 +29,7 @@ def shortest_travel_length_to_polygon_iter(row, G, start_point, distance):
     # Вычисление длины маршрута в метрах
     try:
         route_length_meters = nx.shortest_path_length(G, origin_node, destination_node, weight="length")
+        logging.info(f"Начальные координаты: {start_point}. Координаты КП: {row.latitude_dd}, {row.longitude_dd}. Дистанция составила {route_length_meters}")
     except:
         route_length_meters = distance
     # Перевод длины в километры

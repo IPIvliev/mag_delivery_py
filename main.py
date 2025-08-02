@@ -95,7 +95,7 @@ def load_convert_coordinates(kp_data, lot):
 
     return filtered_data
 
-def main(kp_data, auto_data, main_point, containers_data, working_time, accuracy, to_kg, distance, logging):
+def main(kp_data, auto_data, main_point, containers_data, working_time, accuracy, to_kg, distance, logging, barrier):
     """
     Основная функция: загружает координаты, преобразует их и строит маршрут.
     :param file_path: Путь к файлу с координатами.
@@ -114,10 +114,14 @@ def main(kp_data, auto_data, main_point, containers_data, working_time, accuracy
                     auto_data['Код ТС'],
                     auto_data['Средняя скорость движения в городе, км/ч']))
     # print(cars)
-
+    if barrier == True:
+        drive_type = "drive_service"
+    else:
+        drive_type = "drive"
+    
     # Загрузка, преобразование координат по лотам
-    logging.warning(f"Загружаем карту в радиусе {accuracy/1000} км от полигона. Это длительный процесс, не выключайте программу.")
-    G = ox.graph_from_point(center_point=main_point, dist=accuracy, network_type='drive')
+    logging.warning(f"Загружаем карту в радиусе {accuracy/1000} км от полигона {main_point}. Тип маршрута: {drive_type}. Это длительный процесс, не выключайте программу.")
+    G = ox.graph_from_point(center_point=main_point, dist=accuracy, network_type=drive_type)
     to_kg = to_kg * 100
 
     for lot in lots:
@@ -128,7 +132,7 @@ def main(kp_data, auto_data, main_point, containers_data, working_time, accuracy
         
         
         for car in cars:
-            logging.info(f"Начинаем создавать маршруты для машины {car[0]} в лоте {lot} ")
+            logging.info(f"Начинаем создавать маршруты для машины {car[0]} в лоте {lot}")
             kp_cars_data = filtered_by_cars(lot_sorted_data, car[1])
 
             if car[0] == 'КАМАЗ 43255-6010-69 (самосвал)':
@@ -145,6 +149,7 @@ def main(kp_data, auto_data, main_point, containers_data, working_time, accuracy
                 
                 if 'КАМАЗ 43255-3010' in car[0] or 'Бункеровоз' in car[0]:
                     try:
+                        # logging.info(f"Применяем алгоритм calculate_trail_for_single для расчёта.")
                         routes, trails = calculate_trail_for_single(routes, containers_data, working_time, car, lot, G, main_point, to_kg, distance, logging)
                     except:
                         logging.error(f"Расчёт для машины {car[0]} в лоте {lot} прерван из-за ошибки.")
@@ -152,12 +157,14 @@ def main(kp_data, auto_data, main_point, containers_data, working_time, accuracy
                 # if  car[0] == 'КАМАЗ 43255-6010-69 (самосвал)':
                 elif 'самосвал' in car[0]: # Если бункер вывозится только полным
                     try:
+                        # logging.info(f"Применяем алгоритм calculate_trail_for_kgm для расчёта.")
                         routes, trails = calculate_trail_for_kgm(routes, containers_data, working_time, car, lot, G, main_point, to_kg, distance, logging)
                     except:
                         logging.error(f"Расчёт для машины {car[0]} в лоте {lot} прерван из-за ошибки.")
                         break
                 else:
                     try:
+                        # logging.info(f"Применяем алгоритм calculate_trail_for_trip для расчёта.")
                         routes, trails = calculate_trail_for_trip(routes, containers_data, working_time, car, lot, G, main_point, to_kg, distance, logging)
                     except:
                         logging.error(f"Расчёт для машины {car[0]} в лоте {lot} прерван из-за ошибки.")

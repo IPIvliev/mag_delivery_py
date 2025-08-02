@@ -123,7 +123,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             except:
                 pass
             logging.info("Обработка данных")
-            t1 = Thread(target=main.main, args=(self.kp_data, self.auto_data, self.main_point, self.containers_data, self.working_time, int(self.accuracy), float(self.to_kg), int(self.distance), logging), daemon=True)
+            t1 = Thread(target=main.main, 
+                        args=(self.kp_data, self.auto_data, self.main_point, 
+                              self.containers_data, self.working_time, int(self.accuracy), 
+                              float(self.to_kg), int(self.distance), logging, self.checkBox.isChecked()),
+                                daemon=True)
             t1.start()
             
         except Exception as e:

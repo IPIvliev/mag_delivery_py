@@ -2,11 +2,25 @@ from services.travel_length import shortest_travel_length_iter, shortest_travel_
 
 def culculate_load_time(container_type, container_count, containers_data):
     # Получаем время загрузки для конкретного типа контейнера
-    container_type = container_type.replace('.', ',')
+    container_type = container_type.replace(',', '.')
 
-    # print(container_type)
-   
-    load_time = containers_data[containers_data['Вид контейнера'] == container_type]['Время загрузки,сек'].values[0]
+    # load_time = containers_data[containers_data['Вид контейнера'] == container_type]['Время загрузки,сек'].values[0]
+
+    containers_data['Вид контейнера'] = containers_data['Вид контейнера'].astype(str)
+    ct = container_type.strip()
+
+    matching = containers_data.loc[
+        containers_data['Вид контейнера'] == ct,
+        'Время загрузки,сек'
+    ]
+
+    # print(f"container_type {container_type}, container_count {container_count}, containers_data {containers_data}")
+
+    if not matching.empty:
+        load_time = matching.iloc[0]
+    else:
+        raise ValueError(f"Контейнер типа {ct!r} не найден")
+
     if container_type == 'бестарно':
         container_count = 1
     load_time_minutes = load_time * container_count / 60  # Общее время на загрузку всех контейнеров в минутах
@@ -16,9 +30,6 @@ def culculate_load_time(container_type, container_count, containers_data):
 def check_car_max_weight(car_max_weight, kp_type):
 
     if type(car_max_weight) is str:
-        # car_max_weight = car_max_weight.split(';')
-        # car_max_weight = [value.strip() for value in car_max_weight]
-        # car_max_weight = [value.replace(',', '.') for value in car_max_weight]
 
         kp_type = float(kp_type.replace('.', ','))
         car_max_weight = kp_type
@@ -61,10 +72,8 @@ def calculate_trail_for_single(kp_data, containers_data, working_time, car, lot,
             length_from_current_kp_to_polygon = 0
             time_from_current_kp_to_polygon = 0
 
-            # containers_amount = current_row[9]
-
             # print('For 8 and more: ', 'Car: ', car[0], 'lot: ', lot, current_row)
-            length_from_polygon_to_kp = shortest_travel_length_to_polygon_iter(current_row, G, main_point, distance)
+            length_from_polygon_to_kp = shortest_travel_length_to_polygon_iter(current_row, G, main_point, distance, logging)
             time_from_polygon_to_kp = length_from_polygon_to_kp / speed_road_kmh * 60
             length_from_last_kp_to_polygon = length_from_polygon_to_kp
 
@@ -74,13 +83,12 @@ def calculate_trail_for_single(kp_data, containers_data, working_time, car, lot,
             trail_length += length_from_polygon_to_kp
             trail_time += time_from_polygon_to_kp
 
-            # trail_weight = float(current_row[10])
             # trail_weight = float(current_row[10])# Забираем объем суточный. Странно, но просили сделать
             trail_weight = float(current_row[8]) # Превращаем вид контейнера в объём контейнера
             try:
                 load_time = culculate_load_time(current_row[8], 1, containers_data)
             except:
-                logging.error(f"Ошибка в КП {current_row[1]} функции calculate_trail_for_single")
+                logging.error(f"Ошибка в culculate_load_time КП {current_row[1]} функции calculate_trail_for_single")
 
             trail_time += load_time
             whole_containers_amount = 1 # Есть площадки с несколькими контейнерами, мы их нормализуем
@@ -88,10 +96,6 @@ def calculate_trail_for_single(kp_data, containers_data, working_time, car, lot,
             last_kp_state = current_row[6]
             last_kp_type = current_row[8]
             routes_list = current_row[3] + ' / ' + current_row[7]
-
-            
-
-            ####
 
             trail_length += length_from_current_kp_to_polygon
             trail_time += time_from_current_kp_to_polygon
@@ -165,11 +169,8 @@ def calculate_trail_for_trip(kp_data, containers_data, working_time, car, lot, G
 
     last_row = next(iterrows)
 
-    # if copy_kp_data.shape[0] == 1:
-    #     print('return False, False ', last_row)
-
     # length_from_first_kp_to_polygon = float(next_row['Расстояние начальной КП от точки старта'])
-    length_from_last_kp_to_polygon = shortest_travel_length_to_polygon_iter(last_row, G, main_point, distance)
+    length_from_last_kp_to_polygon = shortest_travel_length_to_polygon_iter(last_row, G, main_point, distance, logging)
     time_from_last_kp_to_polygon = length_from_last_kp_to_polygon / speed_road_kmh * 60
 
     trail_length += length_from_last_kp_to_polygon
@@ -185,7 +186,7 @@ def calculate_trail_for_trip(kp_data, containers_data, working_time, car, lot, G
     try:
         load_time += culculate_load_time(last_row[8], last_row[9], containers_data)
     except:
-        logging.error(f"Ошибка в КП {last_row[1]} функции calculate_trail_for_trip 1.")
+        logging.error(f"Ошибка в culculate_load_time КП {last_row[1]} функции calculate_trail_for_trip.")
 
     trail_time += load_time
     routes_amount += 1
@@ -212,8 +213,6 @@ def calculate_trail_for_trip(kp_data, containers_data, working_time, car, lot, G
     last_kp_lot = last_row[11] # Лот
 
     for current_row in iterrows:
-
-        # if copy_kp_data.shape[0] == 1:
         # print('return current row, False ', current_row)
 
         current_row_coords = (current_row.latitude_dd, current_row.longitude_dd)
@@ -226,9 +225,9 @@ def calculate_trail_for_trip(kp_data, containers_data, working_time, car, lot, G
         try:
             current_load_time = culculate_load_time(current_row[8], int(current_row[9]), containers_data)
         except:
-            logging.error(f"Ошибка в КП {current_row[1]} функции calculate_trail_for_trip 2.")
+            logging.error(f"Ошибка в culculate_load_time КП {current_row[1]} функции calculate_trail_for_trip 2.")
 
-        length_from_current_kp_to_polygon = shortest_travel_length_to_polygon_iter(current_row, G, main_point, distance)
+        length_from_current_kp_to_polygon = shortest_travel_length_to_polygon_iter(current_row, G, main_point, distance, logging)
         time_from_current_kp_to_polygon = length_from_current_kp_to_polygon / speed_road_kmh * 60
 
         if (((trail_time + current_trail_time + current_load_time + time_from_current_kp_to_polygon) < working_time) and ((trail_weight + current_trail_weight ) <= car_max_weight)):
@@ -247,7 +246,6 @@ def calculate_trail_for_trip(kp_data, containers_data, working_time, car, lot, G
             routes_amount += 1
             routes_list += str(current_row[3]) + ' / ' + str(current_row[7]) + '; '
 
-            # remove_routes.append(current_row.Index)
             copy_kp_data.drop(last_row.Index, inplace=True)
 
             # print('last_row, current_row', remove_routes) 
@@ -268,10 +266,8 @@ def calculate_trail_for_trip(kp_data, containers_data, working_time, car, lot, G
                 # print('break')
                 break
     
-# print('!!!!!!!!!!!!!!!!/ncopy_kp_data.drop(remove_routes, inplace=True)/n', remove_routes)
-# copy_kp_data.drop(remove_routes, inplace=True)
     if copy_kp_data.shape[0] == 1:
-        length_from_current_kp_to_polygon = shortest_travel_length_to_polygon_iter(last_row, G, main_point, distance)
+        length_from_current_kp_to_polygon = shortest_travel_length_to_polygon_iter(last_row, G, main_point, distance, logging)
         time_from_current_kp_to_polygon = length_from_current_kp_to_polygon / speed_road_kmh * 60
 
         copy_kp_data.drop(last_row.Index, inplace=True)
@@ -338,11 +334,7 @@ def calculate_trail_for_kgm(kp_data, containers_data, working_time, car, lot, G,
 
     last_row = next(iterrows)
 
-    # if copy_kp_data.shape[0] == 1:
-    #     print('return False, False ', last_row)
-
-    # length_from_first_kp_to_polygon = float(next_row['Расстояние начальной КП от точки старта'])
-    length_from_last_kp_to_polygon = shortest_travel_length_to_polygon_iter(last_row, G, main_point, distance)
+    length_from_last_kp_to_polygon = shortest_travel_length_to_polygon_iter(last_row, G, main_point, distance, logging)
     time_from_last_kp_to_polygon = length_from_last_kp_to_polygon / speed_road_kmh * 60
 
     trail_length += length_from_last_kp_to_polygon
@@ -384,7 +376,6 @@ def calculate_trail_for_kgm(kp_data, containers_data, working_time, car, lot, G,
 
     for current_row in iterrows:
 
-        # if copy_kp_data.shape[0] == 1:
         # print('return current row, False ', current_row)
 
         current_row_coords = (current_row.latitude_dd, current_row.longitude_dd)
@@ -395,7 +386,7 @@ def calculate_trail_for_kgm(kp_data, containers_data, working_time, car, lot, G,
 
         current_load_time = containers_data[containers_data['Вид контейнера'] == 'КГМ']['Время загрузки,сек'].values[0] / 60
 
-        length_from_current_kp_to_polygon = shortest_travel_length_to_polygon_iter(current_row, G, main_point, distance)
+        length_from_current_kp_to_polygon = shortest_travel_length_to_polygon_iter(current_row, G, main_point, distance, logging)
         time_from_current_kp_to_polygon = length_from_current_kp_to_polygon / speed_road_kmh * 60
 
         if (((trail_time + current_trail_time + current_load_time + time_from_current_kp_to_polygon) < working_time) and ((trail_weight + current_trail_weight ) <= car_max_weight)):
@@ -412,14 +403,12 @@ def calculate_trail_for_kgm(kp_data, containers_data, working_time, car, lot, G,
             routes_amount += 1
             routes_list += str(current_row[3]) + ' / ' + str(current_row[7]) + '; '
 
-            # remove_routes.append(current_row.Index)
             copy_kp_data.drop(last_row.Index, inplace=True)
 
             # print('last_row, current_row', remove_routes) 
             last_row = current_row
             # print('last_row = current_row', last_row, current_row)
         else:
-            # break
             if (start_count_row < 5):
                 start_count_row += 1
                 # print('start_count_row ', start_count_row)
@@ -427,14 +416,10 @@ def calculate_trail_for_kgm(kp_data, containers_data, working_time, car, lot, G,
             else:
                 start_count_row = 0
                 copy_kp_data.drop(last_row.Index, inplace=True)
-                # copy_kp_data.drop(current_row.Index, inplace=True)
-                # print('break')
                 break
-    
-# print('!!!!!!!!!!!!!!!!/ncopy_kp_data.drop(remove_routes, inplace=True)/n', remove_routes)
-# copy_kp_data.drop(remove_routes, inplace=True)
+
     if copy_kp_data.shape[0] == 1:
-        length_from_current_kp_to_polygon = shortest_travel_length_to_polygon_iter(last_row, G, main_point, distance)
+        length_from_current_kp_to_polygon = shortest_travel_length_to_polygon_iter(last_row, G, main_point, distance, logging)
         time_from_current_kp_to_polygon = length_from_current_kp_to_polygon / speed_road_kmh * 60
 
         copy_kp_data.drop(last_row.Index, inplace=True)
