@@ -1,43 +1,60 @@
+import logging as default_logging
+
 import osmnx as ox
 import networkx as nx
 
+
+def prepare_nearest_nodes(G, coordinates):
+    """Один пакетный поиск для координат текущего расчёта на неизменяемом графе."""
+    points = list(dict.fromkeys((float(lat), float(lon)) for lat, lon in coordinates))
+    if points:
+        nodes = ox.distance.nearest_nodes(
+            G, X=[point[1] for point in points], Y=[point[0] for point in points])
+        lookup = {point: int(node) for point, node in zip(points, nodes)}
+    else:
+        lookup = {}
+    # Данные принадлежат только этому объекту графа и не попадают в GraphML.
+    G._route_node_lookup = lookup
+    return len(lookup)
+
+
+def _nearest_node(G, point):
+    key = (float(point[0]), float(point[1]))
+    lookup = getattr(G, '_route_node_lookup', {})
+    if key in lookup:
+        return lookup[key]
+    # Совместимость с отдельными вызовами функций без подготовки полного расчёта.
+    return ox.distance.nearest_nodes(G, X=key[1], Y=key[0])
+
+
+def _route_length(G, start_point, end_point, distance, logger):
+    origin_node = _nearest_node(G, start_point)
+    destination_node = _nearest_node(G, end_point)
+    try:
+        return nx.shortest_path_length(G, origin_node, destination_node, weight="length") / 1000
+    except nx.NetworkXNoPath:
+        logger.warning(
+            f"Нет дорожного пути от {start_point} до {end_point} "
+            f"(узлы {origin_node} -> {destination_node}). "
+            f"Использовано расстояние по умолчанию: {distance / 1000:g} км."
+        )
+        return distance / 1000
+
+
 def shortest_travel_length_iter(row, G, start_point, distance):
-    # Поиск ближайших узлов графа для начальной и конечной точки
-    origin_node = ox.distance.nearest_nodes(G, X=start_point[1], Y=start_point[0])
-    destination_node = ox.distance.nearest_nodes(G, X=row.longitude_dd, Y=row.latitude_dd)
+    end_point = (row.latitude_dd, row.longitude_dd)
+    return _route_length(G, start_point, end_point, distance, default_logging)
 
-    # Вычисление длины маршрута в метрах
-    try:
-        route_length_meters = nx.shortest_path_length(G, origin_node, destination_node, weight="length")
-    except:
-        route_length_meters = distance
-    # Перевод длины в километры
-    route_length_km = route_length_meters / 1000
 
-    if float(route_length_km) <= 0.299:
-        route_length_km = 0.3
-
-    # print(start_point[0], start_point[1], row.latitude_dd, row.longitude_dd, row[7], origin_node, destination_node, route_length_km)
-
-    return route_length_km
-
-def shortest_travel_length_to_polygon_iter(row, G, start_point, distance, logging):
-    # Поиск ближайших узлов графа для начальной и конечной точки
-    origin_node = ox.distance.nearest_nodes(G, X=start_point[1], Y=start_point[0])
-    destination_node = ox.distance.nearest_nodes(G, X=row.longitude_dd, Y=row.latitude_dd)
-
-    # Вычисление длины маршрута в метрах
-    try:
-        route_length_meters = nx.shortest_path_length(G, origin_node, destination_node, weight="length")
-        logging.info(f"Начальные координаты: {start_point}. Координаты КП: {row.latitude_dd}, {row.longitude_dd}. Дистанция составила {route_length_meters}")
-    except:
-        route_length_meters = distance
-    # Перевод длины в километры
-    route_length_km = route_length_meters / 1000
-
-    if float(route_length_km) <= 5:
-        route_length_km = distance / 1000
-
-    # print(start_point[0], start_point[1], row.latitude_dd, row.longitude_dd, row[7], origin_node, destination_node, route_length_km)
-
+def shortest_travel_length_to_polygon_iter(
+        row, G, start_point, distance, logging, text="", *, reverse=False):
+    """По умолчанию полигон -> КП; reverse=True задаёт КП -> полигон."""
+    platform_point = (row.latitude_dd, row.longitude_dd)
+    origin, destination = (platform_point, start_point) if reverse else (start_point, platform_point)
+    route_length_km = _route_length(G, origin, destination, distance, logging)
+    direction = "КП -> полигон" if reverse else "полигон -> КП"
+    logging.info(
+        f"КПП: {row[3]} ({row.latitude_dd}, {row.longitude_dd}). "
+        f"{text}. {direction}. Дистанция составила {route_length_km * 1000} м"
+    )
     return route_length_km

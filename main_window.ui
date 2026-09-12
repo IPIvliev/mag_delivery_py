@@ -138,7 +138,7 @@
      </font>
     </property>
     <property name="text">
-     <string>Точность расчёта расстояния (10-50)</string>
+     <string>Область карты вокруг полигона (км)</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="accuracy">
@@ -156,7 +156,7 @@
      </font>
     </property>
     <property name="text">
-     <string>20</string>
+     <string>40</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -203,81 +203,33 @@
    </widget>
    <widget class="QLabel" name="label_latitude">
     <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>160</y>
-      <width>341</width>
-      <height>21</height>
-     </rect>
+     <rect><x>30</x><y>160</y><width>341</width><height>30</height></rect>
     </property>
-    <property name="font">
-     <font>
-      <pointsize>14</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Широта (координаты полигона)</string>
-    </property>
+    <property name="font"><font><pointsize>14</pointsize></font></property>
+    <property name="text"><string>Широта (координаты полигона)</string></property>
    </widget>
    <widget class="QLineEdit" name="latitude">
     <property name="geometry">
-     <rect>
-      <x>370</x>
-      <y>160</y>
-      <width>251</width>
-      <height>30</height>
-     </rect>
+     <rect><x>370</x><y>160</y><width>251</width><height>30</height></rect>
     </property>
-    <property name="font">
-     <font>
-      <pointsize>14</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>56.320699</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-    </property>
+    <property name="font"><font><pointsize>14</pointsize></font></property>
+    <property name="text"><string>53.231607</string></property>
+    <property name="alignment"><set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set></property>
    </widget>
    <widget class="QLabel" name="label_longitude">
     <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>200</y>
-      <width>341</width>
-      <height>21</height>
-     </rect>
+     <rect><x>30</x><y>200</y><width>341</width><height>30</height></rect>
     </property>
-    <property name="font">
-     <font>
-      <pointsize>14</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Долгота (координаты полигона)</string>
-    </property>
+    <property name="font"><font><pointsize>14</pointsize></font></property>
+    <property name="text"><string>Долгота (координаты полигона)</string></property>
    </widget>
    <widget class="QLineEdit" name="longitude">
     <property name="geometry">
-     <rect>
-      <x>370</x>
-      <y>200</y>
-      <width>251</width>
-      <height>30</height>
-     </rect>
+     <rect><x>370</x><y>200</y><width>251</width><height>30</height></rect>
     </property>
-    <property name="font">
-     <font>
-      <pointsize>14</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>43.564531</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-    </property>
+    <property name="font"><font><pointsize>14</pointsize></font></property>
+    <property name="text"><string>45.20543</string></property>
+    <property name="alignment"><set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set></property>
    </widget>
    <widget class="QLabel" name="label_distance">
     <property name="geometry">

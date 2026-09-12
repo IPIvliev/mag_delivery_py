@@ -1,5 +1,6 @@
 from services.travel_length import shortest_travel_length_iter
 import pandas as pd
+from services.container_types import normalize_container_type, container_load_seconds
 
 
 def calculate_routes_itertuples(kp_cars_data, car, containers_data, G, lot, main_point):
@@ -34,13 +35,12 @@ def calculate_routes_itertuples(kp_cars_data, car, containers_data, G, lot, main
         next_kp_lot = next_row[11] # Лот
         
         start_coords = (start_row.latitude_dd, start_row.longitude_dd)
-        container_type = next_kp_type
-        container_type = container_type.replace('.', ',')
+        container_type = normalize_container_type(next_kp_type)
         container_sum = next_kp_weight
         container_count = next_kp_amount
                 
         # Получаем время загрузки для конкретного типа контейнера
-        load_time = containers_data[containers_data['Вид контейнера'] == container_type]['Время загрузки,сек'].values[0]
+        load_time = container_load_seconds(container_type, containers_data)
         load_time_minutes = load_time * container_count / 60  # Общее время на загрузку всех контейнеров в минутах
                
         # Расчет времени на движение

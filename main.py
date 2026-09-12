@@ -1,38 +1,17 @@
 import osmnx as ox
 import os
+from time import perf_counter
 import pandas as pd
+from services.input_validation import dm_to_dd, validate_route_area, validate_input_data
 from services.calculate_trails import calculate_trail_for_single, calculate_trail_for_trip, calculate_trail_for_kgm
 from services.merge_routes import merge
+from services.travel_length import prepare_nearest_nodes
+from services.container_types import normalize_container_type, parse_container_types
 
 def sort_data(G, lot_filtered_data, main_point, lot):
     sorted_data = lot_filtered_data # .sort_values(by='distance_to_main_point')
 
     return sorted_data
-
-# Переводим координаты
-def dm_to_dd(dm):
-    """
-    Преобразует значение формата DM (градусы и десятичные минуты) в DD (десятичные градусы).
-    :param dm: Строка в формате DM (например, 56.14.833)
-    :return: Десятичные градусы (float)
-    """
-    coor = str(dm).replace(',', '.')
-
-    coor_len = len(coor.split('.'))
-
-    # print('Coor len: ', coor_len)
-
-    if coor_len == 3:
-        degrees, minutes_decimal, sec = dm.split('.')
-        minutes_decimal = minutes_decimal + sec
-
-        degrees = int(degrees)  # Градусы
-        minutes = float(minutes_decimal) / 1000  # Перевод в десятичные минуты
-
-        # Преобразование в десятичные градусы
-        return degrees + minutes / 60
-    else:
-        return float(coor)
 
 def add_lots(kp_data):
     lots = kp_data['Лот'].unique()
@@ -48,29 +27,12 @@ def filtered_by_kgm(lot_sorted_data):
     return lot_car_data
 
 def filtered_by_cars(lot_sorted_data, car):
-    # print('Вид контейнера ', lot_sorted_data['Вид контейнера'])
-    lot_sorted_data['Вид контейнера'] = lot_sorted_data['Вид контейнера'].astype("string")
-    lot_sorted_data['Вид контейнера'] = lot_sorted_data['Вид контейнера'].str.strip()
-    lot_sorted_data['Вид контейнера'] = lot_sorted_data['Вид контейнера'].str.replace(',', '.')
-    print(car, type(car))
-
-    if type(car) == float:
-        kp_values = [str(car).strip().replace(',', '.')]
-    elif type(car) == int:
-        kp_values = [str(car)]
-    else:
-        kp_values = car.split(';')
-        kp_values = [value.strip() for value in kp_values]
-        kp_values = [value.replace(',', '.') for value in kp_values]
-        kp_values = [str(value) for value in kp_values]
- 
-    # print(lot_sorted_data['Вид контейнера'])
-
-    lot_car_data = lot_sorted_data[lot_sorted_data['Вид контейнера'].isin(kp_values)]
-
-    # print('KP with container types: ', kp_values, lot_car_data.shape[0])
-
+    kinds = lot_sorted_data['Вид контейнера'].map(normalize_container_type)
+    selected = kinds.isin(parse_container_types(car))
+    lot_car_data = lot_sorted_data.loc[selected].copy()
+    lot_car_data['Вид контейнера'] = kinds.loc[selected]
     return lot_car_data
+
 
 def load_convert_coordinates(kp_data, lot):
     """
@@ -101,6 +63,9 @@ def main(kp_data, auto_data, main_point, containers_data, working_time, accuracy
     :param file_path: Путь к файлу с координатами.
     """
 
+    calculation_started = perf_counter()
+    kp_data = validate_input_data(kp_data, auto_data, containers_data, main_point, accuracy, logging)
+
     # Определяем лоты
     lots = add_lots(kp_data)
 
@@ -121,9 +86,22 @@ def main(kp_data, auto_data, main_point, containers_data, working_time, accuracy
     
     # Загрузка, преобразование координат по лотам
     logging.warning(f"Загружаем карту в радиусе {accuracy/1000} км от полигона {main_point}. Тип маршрута: {drive_type}. Это длительный процесс, не выключайте программу.")
+    graph_started = perf_counter()
     G = ox.graph_from_point(center_point=main_point, dist=accuracy, network_type=drive_type)
+    logging.info(f"Подготовка карты: {perf_counter() - graph_started:.3f} с.")
+    lookup_started = perf_counter()
+    coordinates = [main_point] + list(zip(
+        kp_data['Координаты площадки (широта)'].map(dm_to_dd),
+        kp_data['Координаты площадки (долгота)'].map(dm_to_dd)))
+    point_count = prepare_nearest_nodes(G, coordinates)
+    logging.info(f"Пакетный поиск дорожных узлов: {point_count} уникальных координат за {perf_counter() - lookup_started:.3f} с.")
+    # Сохраняем прежние отчёты, если проверка данных или загрузка карты не удалась.
+    for output_file in ('results/result.xlsx', 'results/result_optimized.xlsx'):
+        if os.path.exists(output_file):
+            os.remove(output_file)
     to_kg = to_kg * 100
 
+    routes_started = perf_counter()
     for lot in lots:
         # Конвертируем координаты и фильтруем по лотам
         lot_filtered_data = load_convert_coordinates(kp_data, lot)
@@ -189,9 +167,11 @@ def main(kp_data, auto_data, main_point, containers_data, working_time, accuracy
             logging.info(f"Расчёт для машины {car[0]} в лоте {lot} завершён.")
 
 
+    logging.info(f"Расчёт рейсов и запись Excel: {perf_counter() - routes_started:.3f} с.")
     input_file = f"results/result.xlsx"
     output_file = f"results/result_optimized.xlsx"
     # sum_trails('results/result.xlsx', working_time, lot, car[0], logging)
     merge(input_file, output_file, working_time, logging)
 
     logging.warning(f"Расчёт всех марщрутов завершён!")
+    logging.info(f"Полное время расчёта: {perf_counter() - calculation_started:.3f} с.")

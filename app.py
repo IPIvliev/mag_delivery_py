@@ -2,14 +2,14 @@ import sys
 import os
 import pandas as pd
 import logging
+from html import escape
+from services.input_validation import InputValidationError
 from PyQt5 import QtWidgets, QtCore
 from main_window import Ui_MainWindow
 import main
 from threading import Thread
 
 from datetime import datetime
-
-# Nuitka for compilation
 
 class QTextEditLogger(logging.Handler):
     def __init__(self, text_widget):
@@ -30,10 +30,13 @@ class QTextEditLogger(logging.Handler):
             self.widget,
             'appendHtml',
             QtCore.Qt.QueuedConnection,
-            QtCore.Q_ARG(str, f"<span style='color:{color}'>{msg}</span>")
+            QtCore.Q_ARG(str, f"<span style='color:{color}'>{escape(msg)}</span>")
         )
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
+    calculation_failed = QtCore.pyqtSignal(str)
+    calculation_finished = QtCore.pyqtSignal()
+
     def __init__(self):
         super().__init__()
         self.setupUi(self)
@@ -50,6 +53,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def setup_connections(self):
         self.btn_load.clicked.connect(self.load_file)
         self.btn_calculate.clicked.connect(self.calculate_data)
+        self.calculation_failed.connect(self.show_error)
+        self.calculation_finished.connect(self.reset_calculation_button)
+        self.btn_calculate.setEnabled(False)
 
     def init_logger(self):
         os.makedirs('logs', exist_ok=True)
@@ -85,54 +91,67 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             logging.info(f"Загружен файл: {file_path}")
 
     def calculate_data(self):
-        self.btn_calculate.setEnabled(False)
-        self.btn_calculate.setText("Идёт расчёт")
-
         if not self.file_path:
             self.show_error("Файл не выбран!")
             return
+
+        self.btn_calculate.setEnabled(False)
+        self.btn_load.setEnabled(False)
+        self.latitude.setEnabled(False)
+        self.longitude.setEnabled(False)
+        self.btn_calculate.setText("Идёт расчёт")
         
         try:
             logging.info(f"Чтение файла: {self.file_path}")
             
-            # self.main_point = (float(56.2509833), float(43.8318333)) # База
-            self.latitude = float(self.latitude.text())
-            self.longitude = float(self.longitude.text())
-            self.main_point = (self.latitude, self.longitude) # Полигон
+            self.main_point = (
+                float(self.latitude.text().strip().replace(',', '.')),
+                float(self.longitude.text().strip().replace(',', '.')),
+            )
+            logging.info(f"Координаты полигона: {self.main_point}")
            
             # Загрузка данных из файлов
             file_path = self.file_path
             self.kp_data = pd.read_excel(file_path, sheet_name='КП')
             self.auto_data = pd.read_excel(file_path, sheet_name='Авто')
             self.containers_data = pd.read_excel(file_path, sheet_name='Виды контейнеров')
-            self.working_time = int(self.working_time.text())
-            self.to_kg = float(self.to_kg.text())
-            self.accuracy = int(self.accuracy.text()+'000')
-            self.distance = int(self.distance.text())
+            self.working_time_minutes = int(self.working_time.text())
+            self.weight_coefficient = float(self.to_kg.text())
+            self.map_distance_meters = int(self.accuracy.text()) * 1000
+            self.fallback_distance_meters = int(self.distance.text())
 
             self.process_data()
             
         except Exception as e:
+            self.reset_calculation_button()
             self.show_error(f"Ошибка: {str(e)}")
 
     def process_data(self):
+        logging.info("Обработка данных")
+        args = (self.kp_data, self.auto_data, self.main_point,
+                self.containers_data, self.working_time_minutes,
+                self.map_distance_meters, self.weight_coefficient,
+                self.fallback_distance_meters, logging, self.checkBox.isChecked())
+        self.calculation_thread = Thread(target=self.run_calculation, args=(args,), daemon=True)
+        self.calculation_thread.start()
+
+    def run_calculation(self, args):
         try:
-            try:
-                os.remove(f"results/result.xlsx")
-                os.remove(f"results/result_optimize.xlsx")
-            except:
-                pass
-            logging.info("Обработка данных")
-            t1 = Thread(target=main.main, 
-                        args=(self.kp_data, self.auto_data, self.main_point, 
-                              self.containers_data, self.working_time, int(self.accuracy), 
-                              float(self.to_kg), int(self.distance), logging, self.checkBox.isChecked()),
-                                daemon=True)
-            t1.start()
-            
-        except Exception as e:
-            logging.error(f"Ошибка обработки данных: {str(e)}")
-            raise
+            main.main(*args)
+        except InputValidationError as error:
+            self.calculation_failed.emit(str(error))
+        except Exception as error:
+            logging.exception("Расчёт остановлен")
+            self.calculation_failed.emit(str(error))
+        finally:
+            self.calculation_finished.emit()
+
+    def reset_calculation_button(self):
+        self.btn_calculate.setText("Рассчитать")
+        self.btn_calculate.setEnabled(bool(self.file_path))
+        self.btn_load.setEnabled(True)
+        self.latitude.setEnabled(True)
+        self.longitude.setEnabled(True)
 
     # def save_results(self):
     #     try:
